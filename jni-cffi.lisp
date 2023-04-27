@@ -694,7 +694,14 @@ Returns -1 if the given object is not a direct java.nio.Buffer.")
 
   (get-object-reference-type reference-type ((object object))
     "Returns the type of the object referred to by the object argument.
-The argument object can either be a local, global or weak global reference."))
+The argument object can either be a local, global or weak global reference.")
+
+  (get-module object ((class class))
+    "Returns the java.lang.Module object for the module that the class is a member of")
+
+  (is-virtual-thread boolean ((object object))
+    "!!! is-virtual-thread is a preview API of the Java platform. (:v19)
+Tests whether an object is a virtual Thread."))
 
 ;; Exported functions (which library?..)
 
