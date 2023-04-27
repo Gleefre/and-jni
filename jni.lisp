@@ -11,6 +11,24 @@
                 (mem-aref ret-vm-initargs '(:struct jll:vm-initargs)))
               status))))
 
+(defun create-vm (&key (vm-version :v1.6)
+                       options
+                       (ignore-unrecognized t))
+  (with-foreign-objects ((vm-initargs '(:struct jll:vm-initargs))
+                         (vm-options '(:struct jll:vm-option) (length options))
+                         (ret-vm :pointer)
+                         (ret-env :pointer))
+    (loop for (name data) in options
+          for i from 0
+          do (setf (mem-aref vm-options '(:struct jll:vm-option) i)
+                   `(jll:name ,name jll:data ,(or data (null-pointer)))))
+    (setf (mem-aref vm-initargs '(:struct jll:vm-initargs))
+          `(jll:version ,vm-version jll:options-number ,(length options)
+            jll:options ,vm-options jll:ignore-unrecognized ,(if ignore-unrecognized 1 0)))
+    (values (jll:%create-vm ret-vm ret-env vm-initargs)
+            (mem-aref ret-vm :pointer)
+            (mem-aref ret-env :pointer))))
+
 (defun get-created-vms (&optional (buffer-length 1))
   (with-foreign-objects ((return-vms '(:pointer jll:vm) buffer-length)
                          (return-number '(:pointer jll:size)))

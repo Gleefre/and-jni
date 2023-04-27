@@ -18,11 +18,13 @@
            #:field-id #:method-id
            #:reference-type #:version #:code #:mode
            #:native-method #:vm-option #:vm-initargs #:vm-attach-args
-           #:%get-default-vm-initargs #:%create-vm #:%get-created-vms))
+           #:%get-default-vm-initargs #:%create-vm #:%get-created-vms
+           #:options #:options-number #:ignore-unrecognized #:name #:data))
 
 (defpackage #:and-jni
   (:use #:cl #:cffi)
   (:local-nicknames (#:jll #:and-jni/cffi))  ; jll = jni low level
   (:export #:init
            #:get-default-vm-initargs
+           #:create-vm
            #:get-created-vms))
