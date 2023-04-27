@@ -1,0 +1,36 @@
+(in-package #:and-jni)
+
+(defun get-default-vm-initargs (&optional (vm-version :v1.6))
+  (with-foreign-object (ret-vm-initargs '(:struct jll:vm-initargs))
+    (setf (foreign-slot-value ret-vm-initargs
+                              '(:struct jll:vm-initargs)
+                              'jll:version)
+          vm-version)
+    (let ((status (jll:get-default-vm-initargs ret-vm-initargs)))
+      (values (when (eq status :ok)
+                (mem-aref ret-vm-initargs '(:struct jll:vm-initargs)))
+              status))))
+
+(defun get-created-vms (&optional (buffer-length 1))
+  (with-foreign-objects ((return-vms '(:pointer jll:vm) buffer-length)
+                         (return-number '(:pointer jll:size)))
+    (let ((status (jll:get-created-vms return-vms buffer-length return-number)))
+      (values (when (eq status :ok)
+                (loop for i below (min (mem-aref return-number 'jll:size)
+                                       buffer-length)
+                      collect (mem-aref return-vms 'jll:vm i)))
+              status))))
+
+(defun jstring-to-string (env jstring)
+  (let* ((length (jll:get-string-utf-length env jstring))
+         (chars (jll:get-string-utf-chars env jstring)))
+    (unwind-protect (coerce (loop for i below length
+                                  collect (code-char (cffi:mem-aref chars :char i)))
+                            'string)
+      (jll:release-string-utf-chars env jstring chars))))
+
+(defun permission-name (env name)
+  (let* ((class (jll:find-class env "android/Manifest$permission"))
+         (field-id (jll:get-static-field-id env class name "Ljava/lang/String;"))
+         (perm (jll:get-static-object-field env class field-id)))
+    (jstring-to-string env perm)))
