@@ -67,12 +67,12 @@
 
 (defcenum (code :int :allow-undeclared-values t)
   (:ok 0)
-  (:error -1)
-  (:edetached -2)
-  (:eversion -3)
-  (:enomem -4)
-  (:eexist -5)
-  (:einval -6))
+  (:unknown-error -1)
+  (:thread-detached-from-vm -2)
+  (:jni-version-error -3)
+  (:not-enough-memory -4)
+  (:vm-already-created -5)
+  (:invalid-arguments -6))
 
 (defcenum (mode :int)
   :release
