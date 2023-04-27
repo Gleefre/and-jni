@@ -1,0 +1,72 @@
+#+title: and-jni
+#+author: Gleefre
+#+email: varedif.a.s@gmail.com
+
+#+language: en
+#+options: toc:nil
+
+CFFI bindings to JNI for android.
+
+~and~ stands for android and ... .
+* Quick start
+Clone repository to you ~local-projects~ directory and load it:
+#+BEGIN_SRC lisp
+  (ql:quickload :and-jni)
+#+END_SRC
+On android you will need to load ~libandroid.so~:
+#+BEGIN_SRC lisp
+  ;; SBCL
+  (sb-alien:load-shared-object "libandroid.so")
+  ;; With cffi
+  (cffi:define-foreign-library libandroid
+    (:android "libandroid.so"))
+  (cffi:load-foreign-library 'libandroid)
+#+END_SRC
+To get list of created JavaVMs:
+#+BEGIN_SRC lisp
+  (and-jni:get-created-vms)
+#+END_SRC
+On android there will be exactly one VM loaded per process.
+However, if you are running from shell, you are out of luck:
+there is no VM loaded and you can't use JNI.
+
+After you get handle for VM:
+#+BEGIN_SRC lisp
+  (defparameter *vm* (car (and-jni:get-created-vms)))
+#+END_SRC
+you need to attach you current thread to the VM:
+#+BEGIN_SRC lisp
+  (and-jni/cffi:attach-current-thread *vm*)
+#+END_SRC
+Two values are returned: return code and JNI environment.
+
+You can also get JNI envrionment with ~get-environment~:
+#+BEGIN_SRC lisp
+  (defparameter *env* (and-jni/cffi:get-environment *vm*))
+#+END_SRC
+
+In the end you should detach your thread:
+#+BEGIN_SRC lisp
+  (and-jni/cffi:detach-current-thread *vm*)
+#+END_SRC
+
+See the JNI spec to learn what you can do with JNI environment.
+https://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/invocation.html .
+* Bugs & Contributions
+  Feel free to report bugs or make suggestions by filing an issue on github.
+
+  Feel free to submit pull requests on github as well.
+* License
+  Copyright 2023 Gleefre
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
