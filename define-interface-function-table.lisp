@@ -70,9 +70,9 @@
        (defmacro ,name (,type ,@(generate-lambda-list args) &rest ,rest-args-name)
          ,docstring
          `(with-foreign-objects (,@',(generate-foreign-objects args))
-            (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ,',type)
+            (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
                                                                  '(:struct ,',struct)
-                                                                 ,',name)
+                                                                 ',',name)
                                              ()
                                              ,',type ,,type
                                              ,@,(quote-odd (generate-call-args args :quote-return t))
