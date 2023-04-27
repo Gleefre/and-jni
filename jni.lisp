@@ -52,6 +52,7 @@
              ((:int jll:int) "I")
              ((:long jll:long) "J")
              ((:double jll:double) "D")
+             ((:void) "V")
              ((:string jll:string) (signature->string '(:class "java/lang/String")))))
           (t (ecase (first signature)
                ((:class) (format nil "L~a;" (signature->string (second signature))))
