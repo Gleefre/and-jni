@@ -39,6 +39,32 @@
                       collect (mem-aref return-vms 'jll:vm i)))
               status))))
 
+(defun signature->string (signature)
+  "Transforms signature represented as a tree to a string signature"
+  (cond ((stringp signature) signature)
+        ((atom signature)
+         (ecase signature
+           ((:boolean jll:boolean) "Z")
+           ((:byte jll:byte) "B")
+           ((:char jll:char) "C")
+           ((:short jll:short) "S")
+           ((:int jll:int) "I")
+           ((:long jll:long) "J")
+           ((:double jll:double) "D")
+           ((:string jll:string) (signature->string '(:class "java/lang/String")))))
+        (t (ecase (first signature)
+             ((:class) (format nil "L~a;" (signature->string (second signature))))
+             ((:array) (format nil "[~a" (signature->string (second signature))))
+             ((:method :function) (format nil "(~{~a~})~a"
+                                          (mapcar #'signature->string (third signature))
+                                          (signature->string (second signature))))))))
+
+(defmacro sig (signature)
+  "Same as signature->string but does not evaluate the argument."
+  (signature->string signature))
+
+;; Some stuff
+
 (defun jstring-to-string (env jstring)
   (let* ((length (jll:get-string-utf-length env jstring))
          (chars (jll:get-string-utf-chars env jstring)))

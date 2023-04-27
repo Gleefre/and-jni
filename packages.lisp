@@ -27,4 +27,6 @@
   (:export #:init
            #:get-default-vm-initargs
            #:create-vm
-           #:get-created-vms))
+           #:get-created-vms
+           #:signature->string
+           #:sig))
