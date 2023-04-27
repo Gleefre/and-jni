@@ -2,6 +2,7 @@
 
 ;;;; From jni.h
 ;;;; See http://java.sun.com/javase/6/docs/technotes/guides/jni/spec/jniTOC.html
+;;;; Newer version: https://docs.oracle.com/en/java/javase/20/docs/specs/jni/index.html
 
 ;;; Primitive types that match up with Java equivalents.
 (defctype boolean :uint8)
