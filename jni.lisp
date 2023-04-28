@@ -65,6 +65,69 @@
     "Same as signature->string but does not evaluate the argument."
     (signature->string signature)))
 
+;; Call with checking for exception
+
+(defvar *pending-exception*)
+
+(defun check-for-exception (env)
+  (unless (zerop (jll:exception-check env))
+    (unwind-protect (progn (jll:exception-describe env)
+                           (let ((*pending-exception* (jll:exception-occurred env)))
+                             (unless (cffi:null-pointer-p *pending-exception*)
+                               (error "Java exception occurred (see *pending-exception*)"))))
+      (jll:exception-clear env))))
+
+(defmacro with-check-for-exception (env expr &rest exprs)
+  `(prog1 (progn ,expr ,@exprs) (check-for-exception ,env)))
+
+;; Ensure that returned value is not NULL
+
+(defmacro not-null (&body body)
+  (alexandria:with-gensyms ($result)
+    `(let ((,$result (progn ,@body)))
+       (when (cffi:null-pointer-p ,$result)
+         (error "Java method returned null."))
+       ,$result)))
+
+;; call-java-method utilities
+
+(defun caller (ret-type &optional is-static)
+  (find-symbol (format nil "CALL~:[~;-STATIC~]-~a-METHOD"
+                       is-static
+                       (etypecase ret-type
+                         (string 'jll:object)
+                         (symbol (if (string= "STRING" (symbol-name ret-type))
+                                     'jll:object
+                                     ret-type))))
+               :jll))
+
+(defun ensure-java-type (type)
+  (etypecase type
+    (string 'jll:object)
+    (symbol (find-symbol (symbol-name type) :jll))))
+
+;; call-java-method: macro for simplified method calls
+
+(defmacro call-java-method (env (class &optional instance) method ret-type &rest type-arg-pairs)
+  (let ((method-signature (j:signature->string `(:method ,ret-type ,(mapcar #'car type-arg-pairs)))))
+    (alexandria:with-gensyms ($class $method $env $class-name $method-name $instance)
+      `(let* ((,$env ,env)
+              (,$class-name ,class)
+              ,@(when instance `(,$instance ,instance))
+              (,$method-name ,method)
+              (,$class (not-null
+                         (with-check-for-exception ,$env
+                           (jll:find-class ,$env ,$class-name))))
+              (,$method (not-null
+                          (with-check-for-exception ,$env
+                            (jll:get-static-method-id ,$env ,$class ,$method-name ,method-signature)))))
+         (with-check-for-exception ,$env
+           (,(caller ret-type (not instance))
+            ,$env ,(if instance $instance $class) ,$method
+            ,@(loop for (type arg) in type-arg-pairs
+                    collect (ensure-java-type type)
+                    collect arg)))))))
+
 ;; Some stuff
 
 (defun jstring-to-string (env jstring)

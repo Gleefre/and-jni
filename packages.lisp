@@ -29,4 +29,9 @@
            #:create-vm
            #:get-created-vms
            #:signature->string
-           #:sig))
+           #:sig
+           #:*pending-exception*
+           #:check-for-exception
+           #:with-check-for-exception
+           #:not-null
+           #:call-java-method))
