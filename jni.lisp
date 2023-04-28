@@ -83,7 +83,7 @@
 ;; Ensure that returned value is not NULL
 
 (defmacro not-null (&body body)
-  (alexandria:with-gensyms ($result)
+  (a:with-gensyms ($result)
     `(let ((,$result (progn ,@body)))
        (when (cffi:null-pointer-p ,$result)
          (error "Java method returned null."))
@@ -106,11 +106,18 @@
     (string 'jll:object)
     (symbol (find-symbol (symbol-name type) :jll))))
 
+(defun type-for-signature (type)
+  (etypecase type
+    (symbol type)
+    (string `(:class ,type))))
+
 ;; call-java-method: macro for simplified method calls
 
 (defmacro call-java-method (env (class &optional instance) method ret-type &rest type-arg-pairs)
-  (let ((method-signature (j:signature->string `(:method ,ret-type ,(mapcar #'car type-arg-pairs)))))
-    (alexandria:with-gensyms ($class $method $env $class-name $method-name $instance)
+  (let ((method-signature (signature->string `(:method ,(type-for-signature ret-type)
+                                                ,(mapcar (a:compose #'type-for-signature #'car)
+                                                         type-arg-pairs)))))
+    (a:with-gensyms ($class $method $env $class-name $method-name $instance)
       `(let* ((,$env ,env)
               (,$class-name ,class)
               ,@(when instance `(,$instance ,instance))

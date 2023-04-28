@@ -23,7 +23,8 @@
 
 (defpackage #:and-jni
   (:use #:cl #:cffi)
-  (:local-nicknames (#:jll #:and-jni/cffi))  ; jll = jni low level
+  (:local-nicknames (#:jll #:and-jni/cffi)  ; jll = jni low level
+                    (#:a #:alexandria))
   (:export #:init
            #:get-default-vm-initargs
            #:create-vm
