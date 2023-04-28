@@ -127,7 +127,8 @@
                            (jll:find-class ,$env ,$class-name))))
               (,$method (not-null
                           (with-check-for-exception ,$env
-                            (jll:get-static-method-id ,$env ,$class ,$method-name ,method-signature)))))
+                            (,(if instance 'jll:get-method-id 'jll:get-static-method-id)
+                             ,$env ,$class ,$method-name ,method-signature)))))
          (with-check-for-exception ,$env
            (,(caller ret-type (not instance))
             ,$env ,(if instance $instance $class) ,$method
