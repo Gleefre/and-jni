@@ -136,6 +136,28 @@
                     collect (ensure-java-type type)
                     collect arg)))))))
 
+;; with-environment gets an environment if thread is attached,
+;; or attaches and detaches after the usage.
+
+(defmacro with-env ((var &optional version) &body body)
+  (alexandria:with-gensyms ($vms $status)
+    `(multiple-value-bind (,$vms ,$status) (get-created-vms)
+       (unless (eq :ok ,$status)
+         (error "Error occurred while fetching JVMs: ~s" ,$status))
+       (unless (plusp (length ,$vms))
+         (error "No JVM created"))
+       (multiple-value-bind (,$status ,var) (jll:get-env (car ,$vms) ,@(when version `(,version)))
+         (case ,$status
+           ((:ok)
+            (progn ,@body))
+           ((:thread-detached-from-vm)
+            (multiple-value-bind (,$status ,var) (jll:attach-current-thread (car ,$vms))
+              (unless (eq :ok ,$status)
+                (error "Error occurred during jll:attach-current-thread : ~s" ,$status))
+              (unwind-protect (progn ,@body)
+                (jll:detach-current-thread (car ,$vms)))))
+           (t (error "Error occurred during jll:get-env : ~s" ,$status)))))))
+
 ;; Some stuff
 
 (defun jstring-to-string (env jstring)

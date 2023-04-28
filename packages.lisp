@@ -35,4 +35,5 @@
            #:check-for-exception
            #:with-check-for-exception
            #:not-null
-           #:call-java-method))
+           #:call-java-method
+           #:with-env))
