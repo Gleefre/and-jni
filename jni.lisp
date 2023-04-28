@@ -120,7 +120,7 @@
     (a:with-gensyms ($class $method $env $class-name $method-name $instance)
       `(let* ((,$env ,env)
               (,$class-name ,class)
-              ,@(when instance `(,$instance ,instance))
+              ,@(when instance `((,$instance ,instance)))
               (,$method-name ,method)
               (,$class (not-null
                          (with-check-for-exception ,$env
