@@ -78,7 +78,7 @@
       (jll:exception-clear env))))
 
 (defmacro with-check-for-exception (env expr &rest exprs)
-  `(prog1 (progn ,expr ,@exprs) (check-for-exception ,env)))
+  `(multiple-value-prog1 (progn ,expr ,@exprs) (check-for-exception ,env)))
 
 ;; Ensure that returned value is not NULL
 
