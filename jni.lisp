@@ -92,14 +92,19 @@
 ;; call-java-method utilities
 
 (defun caller (ret-type &optional is-static)
-  (find-symbol (format nil "CALL~:[~;-STATIC~]-~a-METHOD"
-                       is-static
-                       (etypecase ret-type
-                         (string 'jll:object)
-                         (symbol (if (string= "STRING" (symbol-name ret-type))
-                                     'jll:object
-                                     ret-type))))
-               :jll))
+  (find-symbol (concatenate 'string
+                            "CALL"
+                            (if is-static
+                                "-STATIC"
+                                "")
+                            "-"
+                            (etypecase ret-type
+                              (string "OBJECT")
+                              (symbol (if (string= "STRING" (symbol-name ret-type))
+                                          "OBJECT"
+                                          (symbol-name ret-type))))
+                            "-METHOD")
+               '#:and-jni/cffi))
 
 (defun ensure-java-type (type)
   (etypecase type
