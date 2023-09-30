@@ -51,6 +51,7 @@
              ((:short jll:short) "S")
              ((:int jll:int) "I")
              ((:long jll:long) "J")
+             ((:float jll:float) "F")
              ((:double jll:double) "D")
              ((:void) "V")
              ((:string jll:string) (signature->string '(:class "java/lang/String")))))
