@@ -99,11 +99,17 @@
                                 "-STATIC"
                                 "")
                             "-"
-                            (etypecase ret-type
-                              (string "OBJECT")
-                              (symbol (if (string= "STRING" (symbol-name ret-type))
-                                          "OBJECT"
-                                          (symbol-name ret-type))))
+                            (case ret-type
+                              ((:boolean jll:boolean) "BOOLEAN")
+                              ((:byte jll:byte) "BYTE")
+                              ((:char jll:char) "CHAR")
+                              ((:short jll:short) "SHORT")
+                              ((:int jll:int) "INT")
+                              ((:long jll:long) "LONG")
+                              ((:float jll:float) "FLOAT")
+                              ((:double jll:double) "DOUBLE")
+                              ((:void) "VOID")
+                              (t "OBJECT"))
                             "-METHOD")
                '#:and-jni/cffi))
 
