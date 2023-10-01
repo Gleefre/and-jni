@@ -151,7 +151,7 @@
 ;; with-environment gets an environment if thread is attached,
 ;; or attaches and detaches after the usage.
 
-(defmacro with-env ((var &optional version) &body body)
+(defmacro with-env ((&optional (var (gensym "JENV")) version) &body body)
   (alexandria:with-gensyms ($vms $status)
     `(multiple-value-bind (,$vms ,$status) (get-created-vms)
        (unless (eq :ok ,$status)
@@ -159,11 +159,13 @@
        (unless (plusp (length ,$vms))
          (error "No JVM created"))
        (multiple-value-bind (,$status ,var) (jll:get-env (car ,$vms) ,@(when version `(,version)))
+         (declare (ignorable ,var))
          (case ,$status
            ((:ok)
             (progn ,@body))
            ((:thread-detached-from-vm)
             (multiple-value-bind (,$status ,var) (jll:attach-current-thread (car ,$vms))
+              (declare (ignorable ,var))
               (unless (eq :ok ,$status)
                 (error "Error occurred during jll:attach-current-thread : ~s" ,$status))
               (unwind-protect (progn ,@body)
