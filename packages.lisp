@@ -19,7 +19,9 @@
            #:reference-type #:version #:code #:mode
            #:native-method #:vm-option #:vm-initargs #:vm-attach-args
            #:%get-default-vm-initargs #:%create-vm #:%get-created-vms
-           #:options #:options-number #:ignore-unrecognized #:name #:data))
+           #:options #:options-number #:ignore-unrecognized
+           #:name #:signature #:function-pointer
+           #:name #:data))
 
 (defpackage #:and-jni
   (:use #:cl #:cffi)
