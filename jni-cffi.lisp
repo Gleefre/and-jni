@@ -4,7 +4,7 @@
 ;;;; See http://java.sun.com/javase/6/docs/technotes/guides/jni/spec/jniTOC.html
 ;;;; Newer version: https://docs.oracle.com/en/java/javase/21/docs/specs/jni/index.html
 
-;;; Primitive types that match up with Java equivalents.
+;; Primitive types that match up with Java equivalents.
 (defctype boolean :uint8)
 (defctype byte :int8)
 (defctype char :uint16)
@@ -14,10 +14,10 @@
 (defctype float :float)
 (defctype double :double)
 
-;;; Cardinal indices and sizes.
+;; Cardinal indices and sizes.
 (defctype size int)
 
-;;; Reference types, in C.
+;; Reference types, in C.
 (defctype object :pointer)
 (defctype class object)
 (defctype string object)
@@ -32,8 +32,12 @@
 (defctype float-array array)
 (defctype double-array array)
 (defctype throwable object)
-(defctype weak object)
 
+;; Field and Method IDs
+(defctype field-id :pointer)
+(defctype method-id :pointer)
+
+;; Value type
 (defcunion value
   (boolean boolean)
   (byte byte)
@@ -45,9 +49,9 @@
   (double double)
   (object object))
 
-;;; field & method IDs
-(defctype field-id :pointer)
-(defctype method-id :pointer)
+;; Is not described in documentation, but is used in NewWeakGlobalRef
+;; and DeleteWeakGlobalRef functions.
+(defctype weak object)
 
 ;;; Some enums
 (defcenum reference-type
@@ -132,7 +136,7 @@ Waits until the current thread is the only non-daemon user-level Java thread.")
   %reserved
 
   (get-version version ()
-               "Returns the version of the native method interface.")
+    "Returns the version of the native method interface.")
   (define-class class ((:string name) (object loader) ((:pointer byte) buffer) (size buffer-length))
     "Loads a class from a buffer of raw class data.")
   (find-class class ((:string name))
