@@ -703,8 +703,7 @@ The argument object can either be a local, global or weak global reference.")
     "Returns the java.lang.Module object for the module that the class is a member of")
 
   (is-virtual-thread boolean ((object object))
-    "!!! is-virtual-thread is a preview API of the Java platform. (:v19)
-Tests whether an object is a virtual Thread."))
+    "Tests whether an object is a virtual Thread."))
 
 ;; Exported functions (which library?..)
 
