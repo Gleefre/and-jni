@@ -709,17 +709,65 @@ The argument object can either be a local, global or weak global reference.")
   (is-virtual-thread boolean ((object object))
     "Tests whether an object is a virtual Thread."))
 
-;; Exported functions (which library?..)
+;;; Invocation API functions
+;;; Exported from native library implementing JVM
 
 (defcfun (%get-default-vm-initargs "JNI_GetDefaultJavaVMInitArgs") code
+  "Returns a default configuration for the Java VM. Before calling this
+function, the VERSION foreign slot of the DEFAULT-VM-INITARGS
+parameter must be set to the JNI version that is expected to be
+supported. After this function returns, VERSION foreign slot will be
+set to the actual JNI version the VM supports.
+
+Returns :OK if the requested version is supported; returns a JNI error
+code if the requested version is not supported."
   (default-vm-initargs (:pointer (:struct vm-initargs))))
 
-(defcfun (%create-vm "JNI_CreateJavaVM") code
-  (return-vm :pointer)
-  (return-env :pointer)
-  (vm-initargs (:pointer (:struct vm-initargs))))
-
 (defcfun (%get-created-vms "JNI_GetCreatedJavaVMs") code
+    "Returns all Java VMs that have been created. Pointers to VMs are
+written in the buffer RETURN-VMS buffer in the order they are
+created. At most BUFFER-LENGTH number of entries will be written. The
+total number of created VMs is returned in RETURN-NUMBER.
+
+Creation of multiple VMs in a single process is not supported.
+
+Returns :OK on success; returns a suitable JNI error code on failure."
   (return-vms (:pointer vm))
   (buffer-length size)
   (return-number (:pointer size)))
+
+(defcfun (%create-vm "JNI_CreateJavaVM") code
+  "Loads and initializes a Java VM. The current thread is attached to
+the Java VM and becomes the main thread. Sets the RETURN-ENV argument
+to the JNI environment of the main thread.
+
+Creation of multiple VMs in a single process is not supported.
+
+The second argument to %CREATE-VM is always a pointer to ENV, while
+the third argument is a pointer to a VM-INITARGS structure which uses
+option strings to encode arbitrary VM start up options.
+
+If IGNORE-UNRECOGNIZED is 1, %CREATE-VM ignores all unrecognized
+option strings that begin with '-X' or '_'. If IGNORE-UNRECOGNIZED is
+0, %CREATE-VM returns :UNKNOWN-ERROR as soon as it encounters any
+unrecognized option strings. All Java VMs must recognize the following
+set of standard options:
+    -D<name>=<value>         Set a system property
+    -verbose[:class|gc|jni]  Enable verbose output. The options can be followed by a comma-separated list of names indicating what kind of messages will be printed by the VM. All nonstandard (VM-specific) names must begin with 'X'.
+    vfprintf                 DATA slot is a pointer to the VFPRINTF hook.
+    exit                     DATA slot is a pointer to the EXIT hook.
+    abort                    DATA slot is a pointer to the ABORT hook.
+
+The module related options, --add-reads, --add-exports, --add-opens,
+--add-modules, --limit-modules, --module-path, --patch-module, and
+--upgrade-module-path must be passed as option strings using their
+'option=value' format instead of their 'option value' format.
+
+In addition, each VM implementation may support its own set of
+non-standard option strings. Non-standard option names must begin with
+'-X' or '_'.
+
+Returns JNI_OK on success; returns a suitable JNI error code (a negative number) on failure."
+  (return-vm :pointer)
+  (return-env :pointer)
+  (vm-initargs (:pointer (:struct vm-initargs))))
