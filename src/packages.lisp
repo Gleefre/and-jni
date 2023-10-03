@@ -38,4 +38,8 @@
            #:with-check-for-exception
            #:not-null
            #:call-java-method
-           #:with-env))
+           #:with-env
+
+           #:jclass
+           #:jmethod
+           #:jcall))

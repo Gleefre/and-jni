@@ -187,3 +187,76 @@
          (field-id (jll:get-static-field-id env class name (sig :string)))
          (perm (jll:get-static-object-field env class field-id)))
     (jstring-to-string env perm)))
+
+;; More high level stuff
+
+(defun jclass (class-name)
+  (with-env (env)
+    (with-check-for-exception env
+      (jll:find-class env class-name))))
+
+(defun %jmethod (class name signature)
+  (with-env (env)
+    (with-check-for-exception env
+      (jll:get-method-id env class name signature))))
+
+(defun %jmethod-static (class name signature)
+  (with-env (env)
+    (with-check-for-exception env
+      (jll:get-static-method-id env class name signature))))
+
+(defmacro jmethod (class name &rest &static/return-type/arg-types
+                   &aux (args &static/return-type/arg-types))
+  (assert (not (null args)))
+  (let ((static (and (eql :static (car args))
+                     (pop args))))
+    (assert (not (null args)))
+    (destructuring-bind (return-type &rest arg-types) args
+      `(with-env ()
+         (,(if static
+               '%jmethod-static
+               '%jmethod)
+          ,(if (stringp class)
+               `(jclass ,class)
+               class)
+          ,name
+          (sig (:method ,return-type (,@arg-types))))))))
+
+(defun to-cffi-type (type)
+  (case type
+    ((:boolean jll:boolean) 'jll:boolean)
+    ((:byte jll:byte) 'jll:byte)
+    ((:char jll:char) 'jll:char)
+    ((:short jll:short) 'jll:short)
+    ((:int jll:int) 'jll:int)
+    ((:long jll:long) 'jll:long)
+    ((:float jll:float) 'jll:float)
+    ((:double jll:double) 'jll:double)
+    (:void :void)
+    (t 'jll:object)))
+
+(defmacro jcall (ret-type (class method) static-or-object &rest type-arg-pairs)
+  (assert (evenp (length type-arg-pairs)))
+  (let (($class (gensym "JCLASS"))
+        ($method (gensym "JMETHOD"))
+        (static-p (eq static-or-object :static)))
+    `(with-env (env)
+       (let ((,$class ,class)
+             (,$method ,method))
+         (when (stringp ,$class)
+           (setf ,$class (jclass ,$class)))
+         (when (stringp ,$method)
+           (setf ,$method (jmethod ,$class
+                                   ,method
+                                   ,@(when static-p
+                                       '(:static))
+                                   ,ret-type
+                                   ,@(loop for (type) on type-arg-pairs by #'cddr
+                                           collect type))))
+         (,(caller ret-type static-p)
+          env
+          ,(if static-p $class static-or-object)
+          ,$method
+          ,@(loop for (type arg) on type-arg-pairs by #'cddr
+                  collect (to-cffi-type type)
+                  collect arg))))))
