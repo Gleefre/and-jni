@@ -309,8 +309,7 @@
 
 ;;; Some stuff
 
-(defun permission-name (env name)
-  (let* ((class (jll:find-class env "android/Manifest$permission"))
-         (field-id (jll:get-static-field-id env class name (sig :string)))
-         (perm (jll:get-static-object-field env class field-id)))
-    (jstring-to-string env perm)))
+(defun permission-name (name)
+  (with-env ()
+    (jstring-to-string
+     (jfield :string ("android/Manifest$permission" name) :static))))
