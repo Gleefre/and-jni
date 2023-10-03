@@ -172,23 +172,7 @@
                 (jll:detach-current-thread (car ,$vms)))))
            (t (error "Error occurred during jll:get-env : ~s" ,$status)))))))
 
-;; Some stuff
-
-(defun jstring-to-string (env jstring)
-  (let* ((length (jll:get-string-utf-length env jstring))
-         (chars (jll:get-string-utf-chars env jstring)))
-    (unwind-protect (coerce (loop for i below length
-                                  collect (code-char (cffi:mem-aref chars :char i)))
-                            'string)
-      (jll:release-string-utf-chars env jstring chars))))
-
-(defun permission-name (env name)
-  (let* ((class (jll:find-class env "android/Manifest$permission"))
-         (field-id (jll:get-static-field-id env class name (sig :string)))
-         (perm (jll:get-static-object-field env class field-id)))
-    (jstring-to-string env perm)))
-
-;; More high level stuff
+;;; More high level stuff
 
 (defun jclass (class-name)
   (with-env (env)
@@ -303,3 +287,30 @@
           env
           ,(if static-p $class static-or-object)
           ,$field)))))
+
+;;; Strings
+;;; TODO: What about modified UTF8 used by JVM ?
+
+(defun jstring (string)
+  (with-env (env)
+    (jll:new-string-utf env string)))
+
+(defun jstring-to-string (jstring)
+  (if (cffi:null-pointer-p jstring)
+      (error "NULL is not a valid string")
+      (with-env (env)
+        (let* ((length (jll:get-string-utf-length env jstring))
+               (chars (jll:get-string-utf-chars env jstring)))
+          (unwind-protect (coerce (loop for i below length
+                                        collect (code-char (cffi:mem-aref chars :char i)))
+                                  'string)
+            (jll:release-string-utf-chars env jstring chars))))))
+
+
+;;; Some stuff
+
+(defun permission-name (env name)
+  (let* ((class (jll:find-class env "android/Manifest$permission"))
+         (field-id (jll:get-static-field-id env class name (sig :string)))
+         (perm (jll:get-static-object-field env class field-id)))
+    (jstring-to-string env perm)))

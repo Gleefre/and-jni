@@ -43,4 +43,6 @@
            #:jclass
            #:jmethod
            #:jcall
-           #:jfield))
+           #:jfield
+           #:jstring
+           #:jstring-to-string))
