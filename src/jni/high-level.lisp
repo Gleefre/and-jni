@@ -409,3 +409,17 @@
                                         collect (code-char (cffi:mem-aref chars :char i)))
                                   'string)
             (jll:release-string-utf-chars env jstring chars))))))
+
+;;; Constructing java objects
+
+(defmacro jnew (class &rest type-arg-pairs
+                &aux ($class (gensym "JCLASS"))
+                     ($constructor (gensym "CONSTRUCTOR")))
+  (assert (evenp (length type-arg-pairs)))
+  `(with-env (env)
+     (let* ((,$class (jclass ,class))
+            (,$constructor (jmethod ,$class "<init>" :void ,@(loop for (type nil) on type-arg-pairs by #'cddr
+                                                                   collect type))))
+       (jll:new-object env ,$class ,$constructor ,@(loop for (type arg) on type-arg-pairs by #'cddr
+                                                           collect (to-cffi-type type)
+                                                           collect arg)))))
