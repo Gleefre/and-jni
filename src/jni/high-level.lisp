@@ -288,6 +288,86 @@
           ,(if static-p $class static-or-object)
           ,$field)))))
 
+;;; Arrays
+
+(defparameter +primitive-types+
+  '(:boolean jll:boolean
+    :byte jll:byte
+    :char jll:char
+    :short jll:short
+    :int jll:int
+    :long jll:long
+    :float jll:float
+    :double jll:double))
+
+(defun primitive-type-p (type)
+  (member type +primitive-types+))
+
+(defun jarray-constructor (type)
+  (ecase type
+    ((:boolean jll:boolean) #'jll:new-boolean-array)
+    ((:byte jll:byte) #'jll:new-byte-array)
+    ((:char jll:char) #'jll:new-char-array)
+    ((:short jll:short) #'jll:new-short-array)
+    ((:int jll:int) #'jll:new-int-array)
+    ((:long jll:long) #'jll:new-long-array)
+    ((:float jll:float) #'jll:new-float-array)
+    ((:double jll:double) #'jll:new-double-array)))
+
+(defun jarray-elements-getter (type)
+  (ecase type
+    ((:boolean jll:boolean) #'jll:get-boolean-array-elements)
+    ((:byte jll:byte) #'jll:get-byte-array-elements)
+    ((:char jll:char) #'jll:get-char-array-elements)
+    ((:short jll:short) #'jll:get-short-array-elements)
+    ((:int jll:int) #'jll:get-int-array-elements)
+    ((:long jll:long) #'jll:get-long-array-elements)
+    ((:float jll:float) #'jll:get-float-array-elements)
+    ((:double jll:double) #'jll:get-double-array-elements)))
+
+(defun jarray-elements-releaser (type)
+  (ecase type
+    ((:boolean jll:boolean) #'jll:release-boolean-array-elements)
+    ((:byte jll:byte) #'jll:release-byte-array-elements)
+    ((:char jll:char) #'jll:release-char-array-elements)
+    ((:short jll:short) #'jll:release-short-array-elements)
+    ((:int jll:int) #'jll:release-int-array-elements)
+    ((:long jll:long) #'jll:release-long-array-elements)
+    ((:float jll:float) #'jll:release-float-array-elements)
+    ((:double jll:double) #'jll:release-double-array-elements)))
+
+(defun seq-to-primitive-jarray (type seq &aux (length (length seq)))
+  (with-env (env)
+    (let* ((jarray (funcall (jarray-constructor type) env length))
+           (jarray-buffer (funcall (jarray-elements-getter type) env jarray)))
+      (loop for i from 0
+            for element in (coerce seq 'list)
+            do (setf (cffi:mem-aref jarray-buffer (to-cffi-type type) i)
+                     element))
+      (funcall (jarray-elements-releaser type) env jarray jarray-buffer :release)
+      jarray)))
+
+(defun seq-to-object-jarray (class seq &aux (length (length seq)))
+  (with-env (env)
+    (let ((jarray (jll:new-object-array env
+                                        length
+                                        (if (stringp class)
+                                            (jclass class)
+                                            class)
+                                        (cffi:null-pointer))))
+      (loop for i from 0
+            for element in (coerce seq 'list)
+            do (jll:set-object-array-element env jarray i element))
+      jarray)))
+
+(defun seq-to-jarray (class seq)
+  (if (primitive-type-p class)
+      (seq-to-primitive-jarray class seq)
+      (seq-to-object-jarray class seq)))
+
+(defun jarray (class &rest elements)
+  (seq-to-jarray class elements))
+
 ;;; Strings
 ;;; TODO: What about modified UTF8 used by JVM ?
 

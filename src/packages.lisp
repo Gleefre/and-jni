@@ -45,4 +45,7 @@
            #:jcall
            #:jfield
            #:jstring
-           #:jstring-to-string))
+           #:jstring-to-string
+
+           #:seq-to-jarray
+           #:jarray))
