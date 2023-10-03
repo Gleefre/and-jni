@@ -48,7 +48,8 @@
            #:jstring-to-string
 
            #:seq-to-jarray
-           #:jarray))
+           #:jarray
+           #:jarray-to-list))
 
 (defpackage #:and-jni/wrappers
   (:use #:cl)

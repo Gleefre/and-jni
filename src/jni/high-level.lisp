@@ -368,6 +368,25 @@
 (defun jarray (class &rest elements)
   (seq-to-jarray class elements))
 
+(defun primitive-jarray-to-list (jarray type)
+  (with-env (env)
+    (let* ((length (jll:get-array-length env jarray))
+           (jarray-buffer (funcall (jarray-elements-getter type) env jarray)))
+      (prog1 (loop for i below length
+                   collect (cffi:mem-aref jarray-buffer (to-cffi-type type) i))
+        (funcall (jarray-elements-releaser type) env jarray jarray-buffer :release)))))
+
+(defun object-jarray-to-list (jarray)
+  (with-env (env)
+    (let* ((length (jll:get-array-length env jarray)))
+      (loop for i below length
+            collect (jll:get-object-array-element env jarray i)))))
+
+(defun jarray-to-list (jarray &optional (type 'jll:object))
+  (if (primitive-type-p type)
+      (primitive-jarray-to-list jarray type)
+      (object-jarray-to-list jarray)))
+
 ;;; Strings
 ;;; TODO: What about modified UTF8 used by JVM ?
 
