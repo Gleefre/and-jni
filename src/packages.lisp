@@ -42,4 +42,5 @@
 
            #:jclass
            #:jmethod
-           #:jcall))
+           #:jcall
+           #:jfield))

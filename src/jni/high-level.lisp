@@ -260,3 +260,46 @@
           ,@(loop for (type arg) on type-arg-pairs by #'cddr
                   collect (to-cffi-type type)
                   collect arg))))))
+
+(defun field-getter (type is-static)
+  (find-symbol (concatenate 'string
+                            "GET"
+                            (if is-static
+                                "-STATIC"
+                                "")
+                            "-"
+                            (case type
+                              ((:boolean jll:boolean) "BOOLEAN")
+                              ((:byte jll:byte) "BYTE")
+                              ((:char jll:char) "CHAR")
+                              ((:short jll:short) "SHORT")
+                              ((:int jll:int) "INT")
+                              ((:long jll:long) "LONG")
+                              ((:float jll:float) "FLOAT")
+                              ((:double jll:double) "DOUBLE")
+                              (t "OBJECT"))
+                            "-FIELD")
+               '#:and-jni/cffi))
+
+(defmacro jfield (type (class field) static-or-object)
+  (let (($class (gensym "JCLASS"))
+        ($field (gensym "JFIELD"))
+        (static-p (eq static-or-object :static)))
+    `(with-env (env)
+       (let ((,$class ,class)
+             (,$field ,field))
+         (when (stringp ,$class)
+           (setf ,$class (jclass ,$class)))
+         (when (stringp ,$field)
+           (setf ,$field
+                 (,(if static-p
+                       'jll:get-static-field-id
+                       'jll:get-field-id)
+                  env
+                  ,$class
+                  ,$field
+                  (sig ,type))))
+         (,(field-getter type static-p)
+          env
+          ,(if static-p $class static-or-object)
+          ,$field)))))
