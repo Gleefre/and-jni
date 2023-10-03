@@ -385,11 +385,3 @@
                                         collect (code-char (cffi:mem-aref chars :char i)))
                                   'string)
             (jll:release-string-utf-chars env jstring chars))))))
-
-
-;;; Some stuff
-
-(defun permission-name (name)
-  (with-env ()
-    (jstring-to-string
-     (jfield :string ("android/Manifest$permission" name) :static))))

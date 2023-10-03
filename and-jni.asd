@@ -10,4 +10,5 @@
                 :components ((:file "define-interface-function-table")))
                (:module "jni"
                 :components ((:file "low-level")
-                             (:file "high-level")))))
+                             (:file "high-level")
+                             (:file "some-wrappers")))))
