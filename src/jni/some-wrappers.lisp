@@ -11,3 +11,10 @@
       (if (stringp class)
           (j:jclass class)
           class)))
+
+(defun print-methods (class-name &optional (stream t))
+  (j:with-env ()
+    (j:do-jarray (method (get-methods class-name))
+      (let ((str (j:jcall :string ("java/lang/reflect/Method" "toString") method)))
+        (unless (cffi:null-pointer-p str)
+          (format stream "~A~%" (j:jstring-to-string str)))))))

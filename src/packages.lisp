@@ -59,4 +59,5 @@
   (:local-nicknames (#:jll #:and-jni/cffi)
                     (#:j   #:and-jni))
   (:export #:permission-name
-           #:get-methods))
+           #:get-methods
+           #:print-methods))
