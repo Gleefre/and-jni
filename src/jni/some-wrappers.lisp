@@ -18,3 +18,23 @@
       (let ((str (j:jcall :string ("java/lang/reflect/Method" "toString") method)))
         (unless (cffi:null-pointer-p str)
           (format stream "~A~%" (j:jstring-to-string str)))))))
+
+(defun get-system-property (name)
+  (check-type name string)
+  (j:with-env ()
+    (let ((result (j:jcall :string ("java/lang/System" "getProperty")
+                           :static
+                           :string (j:jstring name))))
+      (unless (cffi:null-pointer-p result)
+        (j:jstring-to-string result)))))
+
+(defun set-system-property (name value)
+  (check-type name string)
+  (check-type value string)
+  (j:with-env ()
+    (let ((result (j:jcall :string ("java/lang/System" "setProperty")
+                           :static
+                           :string (j:jstring name)
+                           :string (j:jstring value))))
+      (unless (cffi:null-pointer-p result)
+        (j:jstring-to-string result)))))

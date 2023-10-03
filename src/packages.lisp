@@ -60,4 +60,6 @@
                     (#:j   #:and-jni))
   (:export #:permission-name
            #:get-methods
-           #:print-methods))
+           #:print-methods
+           #:get-system-property
+           #:set-system-property))
