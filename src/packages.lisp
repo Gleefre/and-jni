@@ -49,7 +49,8 @@
 
            #:seq-to-jarray
            #:jarray
-           #:jarray-to-list))
+           #:jarray-to-list
+           #:do-jarray))
 
 (defpackage #:and-jni/wrappers
   (:use #:cl)

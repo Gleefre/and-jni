@@ -387,6 +387,11 @@
       (primitive-jarray-to-list jarray type)
       (object-jarray-to-list jarray)))
 
+(defmacro do-jarray ((var jarray &optional result) &body body)
+  `(with-env ()
+     (dolist (,var (jarray-to-list ,jarray) ,result)
+       ,@body)))
+
 ;;; Strings
 ;;; TODO: What about modified UTF8 used by JVM ?
 
