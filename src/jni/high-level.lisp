@@ -423,3 +423,30 @@
        (jll:new-object env ,$class ,$constructor ,@(loop for (type arg) on type-arg-pairs by #'cddr
                                                            collect (to-cffi-type type)
                                                            collect arg)))))
+
+;;; Native methods
+
+(defun register-native-method (class name signature function-pointer)
+  (with-env (env)
+    (cffi:with-foreign-object (native-method '(:struct jll:native-method))
+      (setf (cffi:mem-aref native-method '(:struct jll:native-method))
+            `(jll:name ,name jll:signature ,signature jll:function-pointer ,function-pointer))
+      (jll:register-natives env (jclass class) native-method 1))))
+
+(defmacro define-native-method (class name ret-type args
+                                &body body
+                                &aux (callback-name (gensym "JNATIVE-METHOD"))
+                                     ($env (gensym "JENV")))
+  `(progn
+     (cffi:defcallback ,callback-name
+         ,(to-cffi-type ret-type)
+         ((,$env jll:env)
+          (this jll:object)
+          ,@(loop for (var type) in args
+                  collect `(,var ,(to-cffi-type type))))
+       (declare (ignore ,$env) (ignorable this))
+       ,@body)
+     (register-native-method ,class ,name (sig (:method ,ret-type
+                                                 (,@(loop for (nil type) in args
+                                                          collect type))))
+                             (cffi:callback ,callback-name))))

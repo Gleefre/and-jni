@@ -52,7 +52,10 @@
            #:jarray-to-list
            #:do-jarray
 
-           #:jnew))
+           #:jnew
+
+           #:register-native-method
+           #:define-native-method))
 
 (defpackage #:and-jni/wrappers
   (:use #:cl)
