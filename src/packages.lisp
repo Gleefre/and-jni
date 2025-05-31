@@ -1,9 +1,14 @@
 (defpackage #:and-jni/define-ift
-  (:use #:cl #:cffi)
+  (:use #:cl)
+  (:import-from #:cffi
+                #:defctype #:defcstruct
+                #:with-foreign-objects #:foreign-slot-value
+                #:mem-aref #:foreign-funcall-pointer)
   (:export #:define-interface-function-table))
 
 (defpackage #:and-jni/cffi
-  (:use #:and-jni/define-ift)
+  (:use)
+  (:import-from #:and-jni/define-ift #:define-interface-function-table)
   (:import-from #:cl #:t #:&rest #:in-package)
   (:import-from #:cffi
                 #:defctype #:defcstruct #:defcenum
@@ -24,8 +29,13 @@
            #:name #:data))
 
 (defpackage #:and-jni
-  (:use #:cl #:cffi)
-  (:local-nicknames (#:jll #:and-jni/cffi)  ; jll = jni low level
+  (:use #:cl)
+  (:import-from #:cffi
+                #:with-foreign-object #:with-foreign-objects
+                #:foreign-slot-value
+                #:mem-aref
+                #:null-pointer)
+  (:local-nicknames (#:jll #:and-jni/cffi) ; jll = jni low level
                     (#:a #:alexandria))
   (:export #:init
            #:get-default-vm-initargs
