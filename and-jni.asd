@@ -5,10 +5,9 @@
   :license "Apache 2.0"
   :depends-on ("cffi" "alexandria")
   :pathname "src"
+  :serial t
   :components ((:file "packages")
-               (:module "utils"
-                :components ((:file "define-interface-function-table")))
-               (:module "jni"
-                :components ((:file "low-level")
-                             (:file "high-level")
-                             (:file "some-wrappers")))))
+               (:file "define-ift")
+               (:file "low-level")
+               (:file "high-level")
+               (:file "some-wrappers")))
