@@ -1,6 +1,8 @@
 (in-package #:and-jni)
 
 (defun get-default-vm-initargs (&optional (vm-version :v1.6))
+  (when (eq vm-version :v1.1)
+    (error "AND-JNI doesn't support ~S version" vm-version))
   (with-foreign-object (ret-vm-initargs '(:struct jll:vm-initargs))
     (setf (foreign-slot-value ret-vm-initargs
                               '(:struct jll:vm-initargs)
@@ -8,7 +10,9 @@
           vm-version)
     (let ((status (jll:%get-default-vm-initargs ret-vm-initargs)))
       (values (when (eq status :ok)
-                (mem-aref ret-vm-initargs '(:struct jll:vm-initargs)))
+                (foreign-slot-value ret-vm-initargs
+                                    '(:struct jll:vm-initargs)
+                                    'jll:version))
               status))))
 
 (defun create-vm (&key (vm-version :v1.6)
