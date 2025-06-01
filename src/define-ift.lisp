@@ -69,19 +69,18 @@
                  collect b)))
 
 (defmacro defmacro/ift ((type struct) name return-type (&rest args) &optional docstring)
-  (let ()
-    `(defmacro ,name (,type ,@(generate-lambda-list args))
-       ,docstring
-       `(with-foreign-objects (,@',(generate-foreign-objects args))
-          (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
-                                                               '(:struct ,',struct)
-                                                               ',',name)
-                                           ()
-                                           ,',type ,,type
-                                           ,@,(quote-odd (generate-call-args (butlast args) :quote-return t))
-                                           ,@,(second (car (last args)))
-                                           ,',return-type)
-                  ,@',(generate-foreign-objects args `(mem-aref)))))))
+  `(defmacro ,name (,type ,@(generate-lambda-list args))
+     ,docstring
+     `(with-foreign-objects (,@',(generate-foreign-objects args))
+        (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
+                                                             '(:struct ,',struct)
+                                                             ',',name)
+                                         ()
+                                         ,',type ,,type
+                                         ,@,(quote-odd (generate-call-args (butlast args) :quote-return t))
+                                         ,@,(second (car (last args)))
+                                         ,',return-type)
+                ,@',(generate-foreign-objects args `(mem-aref))))))
 
 (defmacro define-interface-function-table ((type-name struct-name) &body functors)
   `(progn
