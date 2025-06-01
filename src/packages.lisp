@@ -1,3 +1,7 @@
+(defpackage #:and-jni/utils
+  (:use #:cl)
+  (:export #:ensure-car))
+
 (defpackage #:and-jni/define-ift
   (:use #:cl)
   (:import-from #:cffi

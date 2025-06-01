@@ -7,6 +7,7 @@
   :pathname "src"
   :serial t
   :components ((:file "packages")
+               (:file "utils")
                (:file "define-ift")
                (:file "low-level")
                (:file "high-level")
