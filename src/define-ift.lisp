@@ -1,6 +1,6 @@
-(in-package #:and-jni/define-ift)
+(in-package #:and-jni/ift)
 
-(defmacro define-interface-function-table ((type-name struct-name) &body functors)
+(defmacro define-table ((type-name struct-name) &body functors)
   `(progn
      (eval-when (:compile-toplevel :load-toplevel :execute)
        (export '(,type-name ,struct-name ,@(mapcar #'car (remove-if-not #'listp functors)))
@@ -10,9 +10,9 @@
                collect `(,(u:ensure-car slot) :pointer)))
      (defctype ,type-name (:pointer (:struct ,struct-name)))
      ,@(loop for functor in (remove-if-not #'listp functors)
-             collect `(defun/ift (,type-name ,struct-name) ,@functor))))
+             collect `(define-function (,type-name ,struct-name) ,@functor))))
 
-(defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
+(defmacro define-function ((type struct) name return-type (&rest args) &optional docstring)
   (multiple-value-bind (lambda-list call-args returns-spec returns-read macro)
       (parse-args args)
     (if macro

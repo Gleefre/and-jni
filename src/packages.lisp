@@ -2,22 +2,22 @@
   (:use #:cl)
   (:export #:ensure-car #:ensure-list))
 
-(defpackage #:and-jni/define-ift
+(defpackage #:and-jni/ift
   (:use #:cl)
   (:import-from #:cffi
                 #:defctype #:defcstruct
                 #:with-foreign-objects #:foreign-slot-value
                 #:mem-aref #:foreign-funcall-pointer)
   (:local-nicknames (#:u #:and-jni/utils))
-  (:export #:define-interface-function-table))
+  (:export #:define-table #:define-function))
 
 (defpackage #:and-jni/cffi
   (:use)
-  (:import-from #:and-jni/define-ift #:define-interface-function-table)
   (:import-from #:cl #:t #:&rest #:in-package)
   (:import-from #:cffi
                 #:defctype #:defcstruct #:defcenum
                 #:defcunion #:defcfun #:null-pointer)
+  (:local-nicknames (#:ift #:and-jni/ift))
   (:export #:boolean #:byte #:char #:short #:int #:long #:float #:double
            #:size
            #:object #:class #:string #:array

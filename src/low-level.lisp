@@ -110,7 +110,7 @@
 
 ;;; Interface Function Tables
 
-(define-interface-function-table (vm invoke-interface)
+(ift:define-table (vm invoke-interface)
   %reserved
   %reserved
   %reserved
@@ -129,7 +129,7 @@ Waits until the current thread is the only non-daemon user-level Java thread.")
     "Attaches the current thread to a Java VM as a daemon."))
 
 ;; See https://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/functions.html
-(define-interface-function-table (env native-interface)
+(ift:define-table (env native-interface)
   %reserved
   %reserved
   %reserved
