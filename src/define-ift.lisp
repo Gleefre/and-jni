@@ -72,7 +72,7 @@
   (let ((args-no-rest (butlast args)))
     `(defmacro ,name (,type ,@(generate-lambda-list args))
        ,docstring
-       `(with-foreign-objects (,@',(generate-foreign-objects args-no-rest))
+       `(with-foreign-objects (,@',(generate-foreign-objects args))
           (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
                                                                '(:struct ,',struct)
                                                                ',',name)
@@ -81,7 +81,7 @@
                                            ,@,(quote-odd (generate-call-args args-no-rest :quote-return t))
                                            ,@,(second (car (last args)))
                                            ,',return-type)
-                  ,@',(generate-foreign-objects args-no-rest `(mem-aref)))))))
+                  ,@',(generate-foreign-objects args `(mem-aref)))))))
 
 (defmacro define-interface-function-table ((type-name struct-name) &body functors)
   `(progn
