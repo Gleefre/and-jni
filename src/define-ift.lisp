@@ -1,7 +1,9 @@
 (in-package #:and-jni/define-ift)
 
 (defun rest-in-args-p (args)
-  (eq '&rest (caar (last args))))
+  (let ((arg (car (last args))))
+    (and (eq '&rest (car arg))
+         (cadr arg))))
 
 (defun generate-lambda-list (args)
   (loop with rest = nil
@@ -51,32 +53,43 @@
           collect (if macro `',type type) and
           collect argname))
 
+(defun parse-args (args)
+  (values (generate-lambda-list args)
+          (generate-call-args args)
+          (generate-foreign-objects args)
+          (generate-foreign-objects args `(mem-aref))
+          (rest-in-args-p args)))
+
 (defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
-  `(defun ,name (,type ,@(generate-lambda-list args))
-     ,docstring
-     (with-foreign-objects (,@(generate-foreign-objects args))
-       (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,type ',type)
-                                                            '(:struct ,struct)
-                                                            ',name)
-                                        ()
-                                        ,type ,type
-                                        ,@(generate-call-args args)
-                                        ,return-type)
-               ,@(generate-foreign-objects args `(mem-aref))))))
+  (multiple-value-bind (lambda-list call-args returns-spec returns-read)
+      (parse-args args)
+    `(defun ,name (,type ,@lambda-list)
+       ,docstring
+       (with-foreign-objects (,@returns-spec)
+         (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,type ',type)
+                                                              '(:struct ,struct)
+                                                              ',name)
+                                          ()
+                                          ,type ,type
+                                          ,@call-args
+                                          ,return-type)
+                 ,@returns-read)))))
 
 (defmacro defmacro/ift ((type struct) name return-type (&rest args) &optional docstring)
-  `(defmacro ,name (,type ,@(generate-lambda-list args))
-     ,docstring
-     `(with-foreign-objects (,@',(generate-foreign-objects args))
-        (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
-                                                             '(:struct ,',struct)
-                                                             ',',name)
-                                         ()
-                                         ,',type ,,type
-                                         ,@(list ,@(generate-call-args args))
-                                         ,@,(second (car (last args)))
-                                         ,',return-type)
-                ,@',(generate-foreign-objects args `(mem-aref))))))
+  (multiple-value-bind (lambda-list call-args returns-spec returns-read rest-arg)
+      (parse-args args)
+    `(defmacro ,name (,type ,@lambda-list)
+       ,docstring
+       `(with-foreign-objects (,@',returns-spec)
+          (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
+                                                               '(:struct ,',struct)
+                                                               ',',name)
+                                           ()
+                                           ,',type ,,type
+                                           ,@(list ,@call-args)
+                                           ,@,rest-arg
+                                           ,',return-type)
+                  ,@',returns-read)))))
 
 (defmacro define-interface-function-table ((type-name struct-name) &body functors)
   `(progn
