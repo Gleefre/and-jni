@@ -10,8 +10,9 @@
        ,@(loop for slot in functions
                collect `(,(u:ensure-car slot) :pointer)))
      (cffi:defctype ,type-name (:pointer (:struct ,struct-name)))
-     ,@(loop for function in (remove-if-not #'listp functions)
-             collect `(define-function (,type-name ,struct-name) ,@function))))
+     ,@(loop for fun in functions
+             when (and (listp fun) (<= 3 (length fun) 4))
+             collect `(define-function (,type-name ,struct-name) ,@fun))))
 
 (defmacro define-function ((type struct) name return-type (&rest args) &optional docstring)
   (multiple-value-bind (lambda-list call-args returns-spec returns-read macro)
