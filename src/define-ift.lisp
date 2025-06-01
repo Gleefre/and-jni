@@ -1,23 +1,22 @@
 (in-package #:and-jni/define-ift)
 
 (defun generate-lambda-list (args)
-  (loop with optional-off = t
+  (loop with optional = nil
         for (type argname . default-value) in args
 
-        if (and default-value optional-off)
+        if (and default-value (not optional))
           collect '&optional and
-          do (setf optional-off nil)
-        else unless (or default-value optional-off)
-          do (warn "No default value specified for argument after &optional. ~a"
+          do (setf optional t)
+        else when (and optional (not default-value))
+          do (warn "No default value found for an argument after &optional. ~S"
                    (list* type argname default-value))
 
         unless (or (eq type :return)
                    (and (listp type)
                         (eq (car type) :return)))
-          if optional-off
-            collect argname
-          else
-            collect `(,argname ,@default-value)))
+          collect (if optional
+                      `(,argname ,@default-value)
+                      argname)))
 
 (defun generate-foreign-objects (args &optional prefix)
   (loop for (type argname) in args
