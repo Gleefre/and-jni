@@ -70,8 +70,7 @@
                  collect b)))
 
 (defmacro defmacro/ift ((type struct) name return-type (&rest args) &optional docstring)
-  (let ((rest-args-name (cadar (last args)))
-        (args-no-rest (butlast args)))
+  (let ((args-no-rest (butlast args)))
     `(defmacro ,name (,type ,@(generate-lambda-list args))
        ,docstring
        `(with-foreign-objects (,@',(generate-foreign-objects args-no-rest))
@@ -81,7 +80,7 @@
                                            ()
                                            ,',type ,,type
                                            ,@,(quote-odd (generate-call-args args-no-rest :quote-return t))
-                                           ,@,rest-args-name
+                                           ,@,(second (car (last args)))
                                            ,',return-type)
                   ,@',(generate-foreign-objects args-no-rest `(mem-aref)))))))
 
