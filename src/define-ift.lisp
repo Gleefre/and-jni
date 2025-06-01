@@ -37,7 +37,7 @@
                   (eq (car type) :return))
         collect `(,@prefix ,argname ',(cadr type))))
 
-(defun generate-call-args (args &key macro)
+(defun generate-call-args (args &aux (macro (member '&rest args :key #'car)))
   (loop for (type argname) in args
         if (eq type :return)
           collect :pointer and
@@ -46,7 +46,7 @@
                      (eq (car type) :return))
           collect :pointer and
           collect (if macro `',argname argname)
-        else 
+        else unless (eq type '&rest)
           collect (if macro `',type type) and
           collect argname))
 
@@ -72,7 +72,7 @@
                                                              ',',name)
                                          ()
                                          ,',type ,,type
-                                         ,@(list ,@(generate-call-args (butlast args) :macro t))
+                                         ,@(list ,@(generate-call-args args))
                                          ,@,(second (car (last args)))
                                          ,',return-type)
                 ,@',(generate-foreign-objects args `(mem-aref))))))
