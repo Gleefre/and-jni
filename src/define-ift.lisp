@@ -37,17 +37,17 @@
                   (eq (car type) :return))
         collect `(,@prefix ,argname ',(cadr type))))
 
-(defun generate-call-args (args &key quote-return)
+(defun generate-call-args (args &key macro)
   (loop for (type argname) in args
         if (eq type :return)
           collect :pointer and
-          collect (if quote-return `',argname argname)
+          collect (if macro `',argname argname)
         else if (and (listp type)
                      (eq (car type) :return))
           collect :pointer and
-          collect (if quote-return `',argname argname)
+          collect (if macro `',argname argname)
         else 
-          collect type and
+          collect (if macro `',type type) and
           collect argname))
 
 (defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
@@ -63,11 +63,6 @@
                                         ,return-type)
                ,@(generate-foreign-objects args `(mem-aref))))))
 
-(defun quote-odd (list)
-  `(list ,@(loop for (a b) on list by #'cddr
-                 collect `',a
-                 collect b)))
-
 (defmacro defmacro/ift ((type struct) name return-type (&rest args) &optional docstring)
   `(defmacro ,name (,type ,@(generate-lambda-list args))
      ,docstring
@@ -77,7 +72,7 @@
                                                              ',',name)
                                          ()
                                          ,',type ,,type
-                                         ,@,(quote-odd (generate-call-args (butlast args) :quote-return t))
+                                         ,@(list ,@(generate-call-args (butlast args) :macro t))
                                          ,@,(second (car (last args)))
                                          ,',return-type)
                 ,@',(generate-foreign-objects args `(mem-aref))))))
