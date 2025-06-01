@@ -1,10 +1,11 @@
 (in-package #:and-jni/ift)
 
-(defmacro define-table ((type-name struct-name) &body functions)
+(defmacro define-table ((type-name struct-name &key export) &body functions)
   `(progn
-     (eval-when (:compile-toplevel :load-toplevel :execute)
-       (export '(,type-name ,struct-name ,@(mapcar #'car (remove-if-not #'listp functions)))
-               ,(package-name *package*)))
+     ,(when export
+        `(eval-when (:compile-toplevel :load-toplevel :execute)
+           (export '(,type-name ,struct-name ,@(mapcar #'car (remove-if-not #'listp functions)))
+                   ,(package-name *package*))))
      (cffi:defcstruct ,struct-name
        ,@(loop for slot in functions
                collect `(,(u:ensure-car slot) :pointer)))
