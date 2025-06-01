@@ -1,16 +1,14 @@
 (in-package #:and-jni/define-ift)
 
 (defun rest-arg-p (args)
-  (let ((arg (car (last args))))
-    (and (eq '&rest (car arg))
-         (cadr arg))))
+  (eq '&rest (caar (last args))))
 
 ;; Returns the following values:
 ;;   lambda-list  -- lambda list for the function/macro
 ;;   call-args    -- call arguments for foreign-funcall-pointer
 ;;   returns-spec -- foreign objects spec for with-foreign-objects
 ;;   returns-read -- foreign objects read forms to return with values
-;;   rest-arg-p   -- name of the &rest arg if it exists
+;;   rest-arg-p   -- t if the &rest arg exists
 (defun parse-args (args)
   (loop with macro = (rest-arg-p args)
         with rest = nil
@@ -22,7 +20,7 @@
                     (list* type argname default-value))
         else when (eq type '&rest)
           collect '&rest into lambda-list and
-          do (setf rest argname)
+          do (setf rest t)
 
         if (and default-value rest)
           do (error "Default value specified for the &rest argument. ~S"
