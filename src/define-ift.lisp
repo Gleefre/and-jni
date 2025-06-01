@@ -1,20 +1,32 @@
 (in-package #:and-jni/define-ift)
 
 (defun generate-lambda-list (args)
-  (loop with optional = nil
+  (loop with rest = nil
+        with optional = nil
         for (type argname . default-value) in args
 
-        if (and default-value (not optional))
+        if rest
+          do (cerror "Ignore." "Found arguments after &rest. ~S"
+                     (list* type argname default-value))
+             (loop-finish)
+        else when (eq type '&rest)
+          collect '&rest and
+          do (setf rest t)
+
+        if (and default-value rest)
+          do (cerror "Ignore." "Default value specified for the &rest argument. ~S"
+                     (list* type argname default-value))
+        else if (and default-value (not optional))
           collect '&optional and
           do (setf optional t)
-        else when (and optional (not default-value))
+        else when (and optional (not rest) (not default-value))
           do (warn "No default value found for an argument after &optional. ~S"
                    (list* type argname default-value))
 
         unless (or (eq type :return)
                    (and (listp type)
                         (eq (car type) :return)))
-          collect (if optional
+          collect (if (and optional (not rest))
                       `(,argname ,@default-value)
                       argname)))
 
@@ -59,19 +71,19 @@
 
 (defmacro defmacro/ift ((type struct) name return-type (&rest args) &optional docstring)
   (let ((rest-args-name (cadar (last args)))
-        (args (butlast args)))
-    `(defmacro ,name (,type ,@(generate-lambda-list args) &rest ,rest-args-name)
+        (args-no-rest (butlast args)))
+    `(defmacro ,name (,type ,@(generate-lambda-list args))
        ,docstring
-       `(with-foreign-objects (,@',(generate-foreign-objects args))
+       `(with-foreign-objects (,@',(generate-foreign-objects args-no-rest))
           (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
                                                                '(:struct ,',struct)
                                                                ',',name)
                                            ()
                                            ,',type ,,type
-                                           ,@,(quote-odd (generate-call-args args :quote-return t))
+                                           ,@,(quote-odd (generate-call-args args-no-rest :quote-return t))
                                            ,@,rest-args-name
                                            ,',return-type)
-                  ,@',(generate-foreign-objects args `(mem-aref)))))))
+                  ,@',(generate-foreign-objects args-no-rest `(mem-aref)))))))
 
 (defmacro define-interface-function-table ((type-name struct-name) &body functors)
   `(progn
