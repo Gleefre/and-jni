@@ -5,10 +5,10 @@
      (eval-when (:compile-toplevel :load-toplevel :execute)
        (export '(,type-name ,struct-name ,@(mapcar #'car (remove-if-not #'listp functions)))
                ,(package-name *package*)))
-     (defcstruct ,struct-name
+     (cffi:defcstruct ,struct-name
        ,@(loop for slot in functions
                collect `(,(u:ensure-car slot) :pointer)))
-     (defctype ,type-name (:pointer (:struct ,struct-name)))
+     (cffi:defctype ,type-name (:pointer (:struct ,struct-name)))
      ,@(loop for function in (remove-if-not #'listp functions)
              collect `(define-function (,type-name ,struct-name) ,@function))))
 
@@ -18,25 +18,25 @@
     (if macro
         `(defmacro ,name (,type ,@lambda-list)
            ,docstring
-           `(with-foreign-objects (,@',returns-spec)
-              (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
-                                                                   '(:struct ,',struct)
-                                                                   ',',name)
-                                               ()
-                                               ,',type ,,type
-                                               ,@,call-args
-                                               ,',return-type)
+           `(cffi:with-foreign-objects (,@',returns-spec)
+              (values (cffi:foreign-funcall-pointer (cffi:foreign-slot-value (cffi:mem-aref ,,type ',',type)
+                                                                             '(:struct ,',struct)
+                                                                             ',',name)
+                                                    ()
+                                                    ,',type ,,type
+                                                    ,@,call-args
+                                                    ,',return-type)
                       ,@',returns-read)))
         `(defun ,name (,type ,@lambda-list)
            ,docstring
-           (with-foreign-objects (,@returns-spec)
-             (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,type ',type)
-                                                                  '(:struct ,struct)
-                                                                  ',name)
-                                              ()
-                                              ,type ,type
-                                              ,@call-args
-                                              ,return-type)
+           (cffi:with-foreign-objects (,@returns-spec)
+             (values (cffi:foreign-funcall-pointer (cffi:foreign-slot-value (cffi:mem-aref ,type ',type)
+                                                                            '(:struct ,struct)
+                                                                            ',name)
+                                                   ()
+                                                   ,type ,type
+                                                   ,@call-args
+                                                   ,return-type)
                      ,@returns-read))))))
 
 ;; Returns the following values:
@@ -70,7 +70,7 @@
 
         if (eq (u:ensure-car type) :return)
           collect `(,argname ',(or (cadr (u:ensure-list type)) :pointer)) into returns-spec and
-          collect `(mem-aref ,argname ',(or (cadr (u:ensure-list type)) :pointer)) into returns-read and
+          collect `(cffi:mem-aref ,argname ',(or (cadr (u:ensure-list type)) :pointer)) into returns-read and
           collect :pointer into call-args and
           collect (if macro `',argname argname) into call-args
         else

@@ -4,10 +4,6 @@
 
 (defpackage #:and-jni/ift
   (:use #:cl)
-  (:import-from #:cffi
-                #:defctype #:defcstruct
-                #:with-foreign-objects #:foreign-slot-value
-                #:mem-aref #:foreign-funcall-pointer)
   (:local-nicknames (#:u #:and-jni/utils))
   (:export #:define-table #:define-function))
 
