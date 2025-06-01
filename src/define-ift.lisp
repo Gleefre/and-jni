@@ -42,8 +42,6 @@
 
 (defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
   `(progn
-     (eval-when (:compile-toplevel :load-toplevel :execute)
-       (export ',name ,(package-name *package*)))
      (defun ,name (,type ,@(generate-lambda-list args))
        ,docstring
        (with-foreign-objects (,@(generate-foreign-objects args))
@@ -65,8 +63,6 @@
   (let ((rest-args-name (cadar (last args)))
         (args (butlast args)))
     `(progn
-       (eval-when (:compile-toplevel :load-toplevel :execute)
-         (export ',name ,(package-name *package*)))
        (defmacro ,name (,type ,@(generate-lambda-list args) &rest ,rest-args-name)
          ,docstring
          `(with-foreign-objects (,@',(generate-foreign-objects args))
@@ -83,7 +79,8 @@
 (defmacro define-interface-function-table ((type-name struct-name) &body functors)
   `(progn
      (eval-when (:compile-toplevel :load-toplevel :execute)
-       (export '(,type-name ,struct-name) ,(package-name *package*)))
+       (export '(,type-name ,struct-name ,@(mapcar #'car (remove-if-not #'listp functors)))
+               ,(package-name *package*)))
      (defcstruct ,struct-name
        ,@(loop for slot in functors
                collect `(,(if (listp slot)
