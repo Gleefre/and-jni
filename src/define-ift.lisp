@@ -5,8 +5,15 @@
     (and (eq '&rest (car arg))
          (cadr arg))))
 
-(defun generate-lambda-list (args)
-  (loop with rest = nil
+;; Returns the following values:
+;;   lambda-list  -- lambda list for the function/macro
+;;   call-args    -- call arguments for foreign-funcall-pointer
+;;   returns-spec -- foreign objects spec for with-foreign-objects
+;;   returns-read -- foreign objects read forms to return with values
+;;   rest-arg-p   -- name of the &rest arg if it exists
+(defun parse-args (args)
+  (loop with macro = (rest-arg-p args)
+        with rest = nil
         with optional = nil
         for (type argname . default-value) in args
 
@@ -14,52 +21,37 @@
           do (error "Found arguments after &rest. ~S"
                     (list* type argname default-value))
         else when (eq type '&rest)
-          collect '&rest and
-          do (setf rest t)
+          collect '&rest into lambda-list and
+          do (setf rest argname)
 
         if (and default-value rest)
           do (error "Default value specified for the &rest argument. ~S"
                     (list* type argname default-value))
         else if (and default-value (not optional))
-          collect '&optional and
+          collect '&optional into lambda-list and
           do (setf optional t)
         else when (and optional (not rest) (not default-value))
           do (warn "No default value found for an argument after &optional. ~S"
                    (list* type argname default-value))
 
-        unless (eq (u:ensure-car type) :return)
-          collect (if (and optional (not rest))
-                      `(,argname ,@default-value)
-                      argname)))
-
-(defun generate-foreign-objects (args &optional prefix)
-  (loop for (type argname) in args
-        when (eq type :return)
-        collect `(,@prefix ,argname :pointer)
-        when (and (listp type)
-                  (eq (car type) :return))
-        collect `(,@prefix ,argname ',(cadr type))))
-
-(defun generate-call-args (args &aux (macro (rest-arg-p args)))
-  (loop for (type argname) in args
         if (eq (u:ensure-car type) :return)
+          collect `(,argname ',(or (cadr (u:ensure-list type)) :pointer)) into returns-spec and
+          collect `(mem-aref ,argname ',(or (cadr (u:ensure-list type)) :pointer)) into returns-read and
           collect :pointer into call-args and
           collect (if macro `',argname argname) into call-args
         else
-          unless (eq type '&rest)
+          collect (if (and optional (not rest))
+                      `(,argname ,@default-value)
+                      argname)
+          into lambda-list and
+          unless rest
             collect (if macro `',type type) into call-args
           end and
           collect argname into call-args
+
         finally (when macro
                   (push 'list* call-args))
-                (return call-args)))
-
-(defun parse-args (args)
-  (values (generate-lambda-list args)
-          (generate-call-args args)
-          (generate-foreign-objects args)
-          (generate-foreign-objects args `(mem-aref))
-          (rest-arg-p args)))
+                (return (values lambda-list call-args returns-spec returns-read rest))))
 
 (defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
   (multiple-value-bind (lambda-list call-args returns-spec returns-read)
