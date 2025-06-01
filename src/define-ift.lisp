@@ -49,8 +49,10 @@
                      (eq (car type) :return))
           collect :pointer and
           collect (if macro `',argname argname)
-        else unless (eq type '&rest)
-          collect (if macro `',type type) and
+        else
+          unless (eq type '&rest)
+            collect (if macro `',type type)
+          end and
           collect argname))
 
 (defun parse-args (args)
@@ -76,7 +78,7 @@
                  ,@returns-read)))))
 
 (defmacro defmacro/ift ((type struct) name return-type (&rest args) &optional docstring)
-  (multiple-value-bind (lambda-list call-args returns-spec returns-read rest-arg)
+  (multiple-value-bind (lambda-list call-args returns-spec returns-read)
       (parse-args args)
     `(defmacro ,name (,type ,@lambda-list)
        ,docstring
@@ -86,8 +88,7 @@
                                                                ',',name)
                                            ()
                                            ,',type ,,type
-                                           ,@(list ,@call-args)
-                                           ,@,rest-arg
+                                           ,@(list* ,@call-args)
                                            ,',return-type)
                   ,@',returns-read)))))
 
