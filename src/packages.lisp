@@ -8,6 +8,7 @@
                 #:defctype #:defcstruct
                 #:with-foreign-objects #:foreign-slot-value
                 #:mem-aref #:foreign-funcall-pointer)
+  (:local-nicknames (#:u #:and-jni/utils))
   (:export #:define-interface-function-table))
 
 (defpackage #:and-jni/cffi

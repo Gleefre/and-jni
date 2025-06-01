@@ -22,9 +22,7 @@
           do (warn "No default value found for an argument after &optional. ~S"
                    (list* type argname default-value))
 
-        unless (or (eq type :return)
-                   (and (listp type)
-                        (eq (car type) :return)))
+        unless (eq (u:ensure-car type) :return)
           collect (if (and optional (not rest))
                       `(,argname ,@default-value)
                       argname)))
@@ -84,10 +82,7 @@
                ,(package-name *package*)))
      (defcstruct ,struct-name
        ,@(loop for slot in functors
-               collect `(,(if (listp slot)
-                              (car slot)
-                              slot)
-                         :pointer)))
+               collect `(,(u:ensure-car slot) :pointer)))
      (defctype ,type-name (:pointer (:struct ,struct-name)))
      ,@(mapcar (lambda (slot)
                  `(,(if (member '&rest (third slot) :key #'car) 'defmacro/ift 'defun/ift)
