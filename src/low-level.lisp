@@ -712,7 +712,8 @@ The argument object can either be a local, global or weak global reference.")
 ;;; Invocation API functions
 ;;; Exported from native library implementing JVM
 
-(defcfun (%get-default-vm-initargs "JNI_GetDefaultJavaVMInitArgs") code
+(defcfun* (%get-default-vm-initargs "JNI_GetDefaultJavaVMInitArgs") code
+    (((:pointer (:struct vm-initargs)) default-vm-initargs))
   "Returns a default configuration for the Java VM. Before calling this
 function, the VERSION foreign slot of the DEFAULT-VM-INITARGS
 parameter must be set to the JNI version that is expected to be
@@ -720,23 +721,21 @@ supported. After this function returns, VERSION foreign slot will be
 set to the actual JNI version the VM supports.
 
 Returns :OK if the requested version is supported; returns a JNI error
-code if the requested version is not supported."
-  (default-vm-initargs (:pointer (:struct vm-initargs))))
+code if the requested version is not supported.")
 
-(defcfun (%get-created-vms "JNI_GetCreatedJavaVMs") code
-    "Returns all Java VMs that have been created. Pointers to VMs are
+(defcfun* (%get-created-vms "JNI_GetCreatedJavaVMs") code
+    (((:pointer vm) return-vms) (size buffer-length) ((:pointer size) return-number))
+  "Returns all Java VMs that have been created. Pointers to VMs are
 written in the buffer RETURN-VMS buffer in the order they are
 created. At most BUFFER-LENGTH number of entries will be written. The
 total number of created VMs is returned in RETURN-NUMBER.
 
 Creation of multiple VMs in a single process is not supported.
 
-Returns :OK on success; returns a suitable JNI error code on failure."
-  (return-vms (:pointer vm))
-  (buffer-length size)
-  (return-number (:pointer size)))
+Returns :OK on success; returns a suitable JNI error code on failure.")
 
-(defcfun (%create-vm "JNI_CreateJavaVM") code
+(defcfun* (%create-vm "JNI_CreateJavaVM") code
+    ((:return return-vm) (:return return-env) ((:pointer (:struct vm-initargs)) vm-initargs))
   "Loads and initializes a Java VM. The current thread is attached to
 the Java VM and becomes the main thread. Sets the RETURN-ENV argument
 to the JNI environment of the main thread.
@@ -767,7 +766,4 @@ In addition, each VM implementation may support its own set of
 non-standard option strings. Non-standard option names must begin with
 '-X' or '_'.
 
-Returns JNI_OK on success; returns a suitable JNI error code (a negative number) on failure."
-  (return-vm :pointer)
-  (return-env :pointer)
-  (vm-initargs (:pointer (:struct vm-initargs))))
+Returns JNI_OK on success; returns a suitable JNI error code (a negative number) on failure.")

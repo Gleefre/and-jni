@@ -22,6 +22,7 @@
   (:use)
   (:import-from #:cl #:t #:&rest #:in-package)
   (:import-from #:cffi #:defcenum #:defcfun #:defcstruct #:defctype #:defcunion)
+  (:import-from #:and-jni/defcfun* #:defcfun*)
   (:local-nicknames (#:ift #:and-jni/ift))
   (:export #:boolean #:byte #:char #:short #:int #:long #:float #:double
            #:size
