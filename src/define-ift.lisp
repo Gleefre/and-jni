@@ -52,34 +52,31 @@
                 (return (values lambda-list call-args returns-spec returns-read rest))))
 
 (defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
-  (multiple-value-bind (lambda-list call-args returns-spec returns-read)
+  (multiple-value-bind (lambda-list call-args returns-spec returns-read rest-arg-p)
       (parse-args args)
-    `(defun ,name (,type ,@lambda-list)
-       ,docstring
-       (with-foreign-objects (,@returns-spec)
-         (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,type ',type)
-                                                              '(:struct ,struct)
-                                                              ',name)
-                                          ()
-                                          ,type ,type
-                                          ,@call-args
-                                          ,return-type)
-                 ,@returns-read)))))
-
-(defmacro defmacro/ift ((type struct) name return-type (&rest args) &optional docstring)
-  (multiple-value-bind (lambda-list call-args returns-spec returns-read)
-      (parse-args args)
-    `(defmacro ,name (,type ,@lambda-list)
-       ,docstring
-       `(with-foreign-objects (,@',returns-spec)
-          (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
-                                                               '(:struct ,',struct)
-                                                               ',',name)
-                                           ()
-                                           ,',type ,,type
-                                           ,@,call-args
-                                           ,',return-type)
-                  ,@',returns-read)))))
+    (if rest-arg-p
+        `(defmacro ,name (,type ,@lambda-list)
+           ,docstring
+           `(with-foreign-objects (,@',returns-spec)
+              (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
+                                                                   '(:struct ,',struct)
+                                                                   ',',name)
+                                               ()
+                                               ,',type ,,type
+                                               ,@,call-args
+                                               ,',return-type)
+                      ,@',returns-read)))
+        `(defun ,name (,type ,@lambda-list)
+           ,docstring
+           (with-foreign-objects (,@returns-spec)
+             (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,type ',type)
+                                                                  '(:struct ,struct)
+                                                                  ',name)
+                                              ()
+                                              ,type ,type
+                                              ,@call-args
+                                              ,return-type)
+                     ,@returns-read))))))
 
 (defmacro define-interface-function-table ((type-name struct-name) &body functors)
   `(progn
@@ -91,6 +88,4 @@
                collect `(,(u:ensure-car slot) :pointer)))
      (defctype ,type-name (:pointer (:struct ,struct-name)))
      ,@(loop for functor in (remove-if-not #'listp functors)
-             collect `(,(if (rest-arg-p (third functor)) 'defmacro/ift 'defun/ift)
-                       (,type-name ,struct-name)
-                       ,@functor))))
+             collect `(defun/ift (,type-name ,struct-name) ,@functor))))
