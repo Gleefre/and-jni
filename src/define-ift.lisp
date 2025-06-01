@@ -43,13 +43,16 @@
 (defun generate-call-args (args &aux (macro (rest-arg-p args)))
   (loop for (type argname) in args
         if (eq (u:ensure-car type) :return)
-          collect :pointer and
-          collect (if macro `',argname argname)
+          collect :pointer into call-args and
+          collect (if macro `',argname argname) into call-args
         else
           unless (eq type '&rest)
-            collect (if macro `',type type)
+            collect (if macro `',type type) into call-args
           end and
-          collect argname))
+          collect argname into call-args
+        finally (when macro
+                  (push 'list* call-args))
+                (return call-args)))
 
 (defun parse-args (args)
   (values (generate-lambda-list args)
@@ -84,7 +87,7 @@
                                                                ',',name)
                                            ()
                                            ,',type ,,type
-                                           ,@(list* ,@call-args)
+                                           ,@,call-args
                                            ,',return-type)
                   ,@',returns-read)))))
 
