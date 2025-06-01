@@ -70,7 +70,8 @@
   (:v10  #x000a0000)
   (:v19  #x00130000)
   (:v20  #x00140000)
-  (:v21  #x00150000))
+  (:v21  #x00150000)
+  (:v24  #x00180000))
 
 (defcenum (code :int :allow-undeclared-values t)
   (:ok 0)
@@ -707,7 +708,10 @@ The argument object can either be a local, global or weak global reference.")
     "Returns the java.lang.Module object for the module that the class is a member of")
 
   (is-virtual-thread boolean ((object object))
-    "Tests whether an object is a virtual Thread."))
+    "Tests whether an object is a virtual Thread.")
+
+  (get-string-utf-length-as-long long ((string string))
+    "Returns the length in bytes of the modified UTF-8 representation of a string."))
 
 ;;; Invocation API functions
 ;;; Exported from native library implementing JVM
