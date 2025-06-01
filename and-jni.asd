@@ -8,6 +8,8 @@
   :serial t
   :components ((:file "packages")
                (:file "utils")
+               (:file "parse-args")
+               (:file "defcfun-star")
                (:file "ift")
                (:file "low-level")
                (:file "high-level")

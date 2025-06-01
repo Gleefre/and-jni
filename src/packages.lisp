@@ -2,8 +2,19 @@
   (:use #:cl)
   (:export #:ensure-car #:ensure-list))
 
+(defpackage #:and-jni/parse-args
+  (:use #:cl)
+  (:local-nicknames (#:u #:and-jni/utils))
+  (:export #:parse-args))
+
+(defpackage #:and-jni/defcfun*
+  (:use #:cl)
+  (:import-from #:and-jni/parse-args #:parse-args)
+  (:export #:defcfun*))
+
 (defpackage #:and-jni/ift
   (:use #:cl)
+  (:import-from #:and-jni/parse-args #:parse-args)
   (:local-nicknames (#:u #:and-jni/utils))
   (:export #:define-table #:define-function))
 
