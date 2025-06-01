@@ -6,16 +6,15 @@
         for (type argname . default-value) in args
 
         if rest
-          do (cerror "Ignore." "Found arguments after &rest. ~S"
-                     (list* type argname default-value))
-             (loop-finish)
+          do (error "Found arguments after &rest. ~S"
+                    (list* type argname default-value))
         else when (eq type '&rest)
           collect '&rest and
           do (setf rest t)
 
         if (and default-value rest)
-          do (cerror "Ignore." "Default value specified for the &rest argument. ~S"
-                     (list* type argname default-value))
+          do (error "Default value specified for the &rest argument. ~S"
+                    (list* type argname default-value))
         else if (and default-value (not optional))
           collect '&optional and
           do (setf optional t)
