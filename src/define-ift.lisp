@@ -42,11 +42,7 @@
 
 (defun generate-call-args (args &aux (macro (rest-arg-p args)))
   (loop for (type argname) in args
-        if (eq type :return)
-          collect :pointer and
-          collect (if macro `',argname argname)
-        else if (and (listp type)
-                     (eq (car type) :return))
+        if (eq (u:ensure-car type) :return)
           collect :pointer and
           collect (if macro `',argname argname)
         else
