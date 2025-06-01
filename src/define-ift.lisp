@@ -1,8 +1,5 @@
 (in-package #:and-jni/define-ift)
 
-(defun rest-arg-p (args)
-  (eq '&rest (caar (last args))))
-
 ;; Returns the following values:
 ;;   lambda-list  -- lambda list for the function/macro
 ;;   call-args    -- call arguments for foreign-funcall-pointer
@@ -10,7 +7,7 @@
 ;;   returns-read -- foreign objects read forms to return with values
 ;;   rest-arg-p   -- t if the &rest arg exists
 (defun parse-args (args)
-  (loop with macro = (rest-arg-p args)
+  (loop with macro = (eq '&rest (caar (last args)))
         with rest = nil
         with optional = nil
         for (type argname . default-value) in args
