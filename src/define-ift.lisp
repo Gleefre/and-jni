@@ -1,5 +1,8 @@
 (in-package #:and-jni/define-ift)
 
+(defun rest-in-args-p (args)
+  (eq '&rest (caar (last args))))
+
 (defun generate-lambda-list (args)
   (loop with rest = nil
         with optional = nil
@@ -35,7 +38,7 @@
                   (eq (car type) :return))
         collect `(,@prefix ,argname ',(cadr type))))
 
-(defun generate-call-args (args &aux (macro (eq '&rest (caar (last args)))))
+(defun generate-call-args (args &aux (macro (rest-in-args-p args)))
   (loop for (type argname) in args
         if (eq type :return)
           collect :pointer and
@@ -85,6 +88,6 @@
                collect `(,(u:ensure-car slot) :pointer)))
      (defctype ,type-name (:pointer (:struct ,struct-name)))
      ,@(loop for functor in (remove-if-not #'listp functors)
-             collect `(,(if (eq '&rest (caar (last (third functor)))) 'defmacro/ift 'defun/ift)
+             collect `(,(if (rest-in-args-p (third functor)) 'defmacro/ift 'defun/ift)
                        (,type-name ,struct-name)
                        ,@functor))))
