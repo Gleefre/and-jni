@@ -5,7 +5,7 @@
 ;;   call-args    -- call arguments for foreign-funcall-pointer
 ;;   returns-spec -- foreign objects spec for with-foreign-objects
 ;;   returns-read -- foreign objects read forms to return with values
-;;   rest-arg-p   -- t if the &rest arg exists
+;;   macro        -- t if the macro should be defined
 (defun parse-args (args)
   (loop with macro = (eq '&rest (caar (last args)))
         with rest = nil
@@ -46,12 +46,12 @@
 
         finally (when macro
                   (push 'list* call-args))
-                (return (values lambda-list call-args returns-spec returns-read rest))))
+                (return (values lambda-list call-args returns-spec returns-read macro))))
 
 (defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
-  (multiple-value-bind (lambda-list call-args returns-spec returns-read rest-arg-p)
+  (multiple-value-bind (lambda-list call-args returns-spec returns-read macro)
       (parse-args args)
-    (if rest-arg-p
+    (if macro
         `(defmacro ,name (,type ,@lambda-list)
            ,docstring
            `(with-foreign-objects (,@',returns-spec)
