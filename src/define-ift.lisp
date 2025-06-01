@@ -1,5 +1,44 @@
 (in-package #:and-jni/define-ift)
 
+(defmacro define-interface-function-table ((type-name struct-name) &body functors)
+  `(progn
+     (eval-when (:compile-toplevel :load-toplevel :execute)
+       (export '(,type-name ,struct-name ,@(mapcar #'car (remove-if-not #'listp functors)))
+               ,(package-name *package*)))
+     (defcstruct ,struct-name
+       ,@(loop for slot in functors
+               collect `(,(u:ensure-car slot) :pointer)))
+     (defctype ,type-name (:pointer (:struct ,struct-name)))
+     ,@(loop for functor in (remove-if-not #'listp functors)
+             collect `(defun/ift (,type-name ,struct-name) ,@functor))))
+
+(defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
+  (multiple-value-bind (lambda-list call-args returns-spec returns-read macro)
+      (parse-args args)
+    (if macro
+        `(defmacro ,name (,type ,@lambda-list)
+           ,docstring
+           `(with-foreign-objects (,@',returns-spec)
+              (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
+                                                                   '(:struct ,',struct)
+                                                                   ',',name)
+                                               ()
+                                               ,',type ,,type
+                                               ,@,call-args
+                                               ,',return-type)
+                      ,@',returns-read)))
+        `(defun ,name (,type ,@lambda-list)
+           ,docstring
+           (with-foreign-objects (,@returns-spec)
+             (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,type ',type)
+                                                                  '(:struct ,struct)
+                                                                  ',name)
+                                              ()
+                                              ,type ,type
+                                              ,@call-args
+                                              ,return-type)
+                     ,@returns-read))))))
+
 ;; Returns the following values:
 ;;   lambda-list  -- lambda list for the function/macro
 ;;   call-args    -- call arguments for foreign-funcall-pointer
@@ -47,42 +86,3 @@
         finally (when macro
                   (push 'list* call-args))
                 (return (values lambda-list call-args returns-spec returns-read macro))))
-
-(defmacro defun/ift ((type struct) name return-type (&rest args) &optional docstring)
-  (multiple-value-bind (lambda-list call-args returns-spec returns-read macro)
-      (parse-args args)
-    (if macro
-        `(defmacro ,name (,type ,@lambda-list)
-           ,docstring
-           `(with-foreign-objects (,@',returns-spec)
-              (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,,type ',',type)
-                                                                   '(:struct ,',struct)
-                                                                   ',',name)
-                                               ()
-                                               ,',type ,,type
-                                               ,@,call-args
-                                               ,',return-type)
-                      ,@',returns-read)))
-        `(defun ,name (,type ,@lambda-list)
-           ,docstring
-           (with-foreign-objects (,@returns-spec)
-             (values (foreign-funcall-pointer (foreign-slot-value (mem-aref ,type ',type)
-                                                                  '(:struct ,struct)
-                                                                  ',name)
-                                              ()
-                                              ,type ,type
-                                              ,@call-args
-                                              ,return-type)
-                     ,@returns-read))))))
-
-(defmacro define-interface-function-table ((type-name struct-name) &body functors)
-  `(progn
-     (eval-when (:compile-toplevel :load-toplevel :execute)
-       (export '(,type-name ,struct-name ,@(mapcar #'car (remove-if-not #'listp functors)))
-               ,(package-name *package*)))
-     (defcstruct ,struct-name
-       ,@(loop for slot in functors
-               collect `(,(u:ensure-car slot) :pointer)))
-     (defctype ,type-name (:pointer (:struct ,struct-name)))
-     ,@(loop for functor in (remove-if-not #'listp functors)
-             collect `(defun/ift (,type-name ,struct-name) ,@functor))))
