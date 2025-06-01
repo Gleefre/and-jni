@@ -1,6 +1,6 @@
 (defpackage #:and-jni/utils
   (:use #:cl)
-  (:export #:ensure-car))
+  (:export #:ensure-car #:ensure-list))
 
 (defpackage #:and-jni/define-ift
   (:use #:cl)
