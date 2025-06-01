@@ -84,7 +84,8 @@
        ,@(loop for slot in functors
                collect `(,(u:ensure-car slot) :pointer)))
      (defctype ,type-name (:pointer (:struct ,struct-name)))
-     ,@(mapcar (lambda (slot)
-                 `(,(if (eq '&rest (caar (last (third slot)))) 'defmacro/ift 'defun/ift)
-                   (,type-name ,struct-name) ,@slot))
+     ,@(mapcar (lambda (functor)
+                 `(,(if (eq '&rest (caar (last (third functor)))) 'defmacro/ift 'defun/ift)
+                   (,type-name ,struct-name)
+                   ,@functor))
                (remove-if-not #'listp functors))))
