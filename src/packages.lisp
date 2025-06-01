@@ -10,9 +10,7 @@
 (defpackage #:and-jni/cffi
   (:use)
   (:import-from #:cl #:t #:&rest #:in-package)
-  (:import-from #:cffi
-                #:defctype #:defcstruct #:defcenum
-                #:defcunion #:defcfun #:null-pointer)
+  (:import-from #:cffi #:defcenum #:defcfun #:defcstruct #:defctype #:defcunion)
   (:local-nicknames (#:ift #:and-jni/ift))
   (:export #:boolean #:byte #:char #:short #:int #:long #:float #:double
            #:size

@@ -118,14 +118,14 @@
     "Unloads a Java VM and reclaims its resources.
 Waits until the current thread is the only non-daemon user-level Java thread.")
   (attach-current-thread code ((:return env)
-                               ((:pointer (:struct vm-attach-args)) args (null-pointer)))
+                               ((:pointer (:struct vm-attach-args)) args (cffi:null-pointer)))
     "Attaches the current thread to a Java VM.")
   (detach-current-thread code ()
     "Detaches the current thread from a Java VM.")
   (get-env code ((:return env) (version version :v1.6))
     "Returns Java Environment as second value.")
   (attach-current-thread-as-daemon code ((:return env)
-                                         ((:pointer (:struct vm-attach-args)) args (null-pointer)))
+                                         ((:pointer (:struct vm-attach-args)) args (cffi:null-pointer)))
     "Attaches the current thread to a Java VM as a daemon."))
 
 ;; See https://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/functions.html
