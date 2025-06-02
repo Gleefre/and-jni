@@ -8,7 +8,7 @@
                               '(:struct jll:vm-initargs)
                               'jll:version)
           vm-version)
-    (let ((status (jll:%get-default-vm-initargs ret-vm-initargs)))
+    (let ((status (jll:get-default-vm-initargs ret-vm-initargs)))
       (values (when (eq status :ok)
                 (foreign-slot-value ret-vm-initargs
                                     '(:struct jll:vm-initargs)
@@ -27,12 +27,12 @@
     (setf (mem-aref vm-initargs '(:struct jll:vm-initargs))
           `(jll:version ,vm-version jll:options-number ,(length options)
             jll:options ,vm-options jll:ignore-unrecognized ,(if ignore-unrecognized 1 0)))
-    (jll:%create-vm vm-initargs)))
+    (jll:create-vm vm-initargs)))
 
 (defun get-created-vms (&optional (buffer-length 1))
   (with-foreign-objects ((return-vms '(:pointer jll:vm) buffer-length)
                          (return-number '(:pointer jll:size)))
-    (let ((status (jll:%get-created-vms return-vms buffer-length return-number)))
+    (let ((status (jll:get-created-vms return-vms buffer-length return-number)))
       (values (when (eq status :ok)
                 (loop for i below (min (mem-aref return-number 'jll:size)
                                        buffer-length)

@@ -34,7 +34,7 @@
            #:field-id #:method-id
            #:reference-type #:version #:code #:mode
            #:native-method #:vm-option #:vm-initargs #:vm-attach-args
-           #:%get-default-vm-initargs #:%create-vm #:%get-created-vms
+           #:get-default-vm-initargs #:create-vm #:get-created-vms
            #:options #:options-number #:ignore-unrecognized
            #:name #:signature #:function-pointer
            #:name #:data))

@@ -716,7 +716,7 @@ The argument object can either be a local, global or weak global reference.")
 ;;; Invocation API functions
 ;;; Exported from native library implementing JVM
 
-(defcfun* (%get-default-vm-initargs "JNI_GetDefaultJavaVMInitArgs") code
+(defcfun* (get-default-vm-initargs "JNI_GetDefaultJavaVMInitArgs") code
     (((:pointer (:struct vm-initargs)) default-vm-initargs))
   "Returns a default configuration for the Java VM. Before calling this
 function, the VERSION foreign slot of the DEFAULT-VM-INITARGS
@@ -727,7 +727,7 @@ set to the actual JNI version the VM supports.
 Returns :OK if the requested version is supported; returns a JNI error
 code if the requested version is not supported.")
 
-(defcfun* (%get-created-vms "JNI_GetCreatedJavaVMs") code
+(defcfun* (get-created-vms "JNI_GetCreatedJavaVMs") code
     (((:pointer vm) return-vms) (size buffer-length) ((:pointer size) return-number))
   "Returns all Java VMs that have been created. Pointers to VMs are
 written in the buffer RETURN-VMS buffer in the order they are
@@ -738,7 +738,7 @@ Creation of multiple VMs in a single process is not supported.
 
 Returns :OK on success; returns a suitable JNI error code on failure.")
 
-(defcfun* (%create-vm "JNI_CreateJavaVM") code
+(defcfun* (create-vm "JNI_CreateJavaVM") code
     ((:return return-vm) (:return return-env) ((:pointer (:struct vm-initargs)) vm-initargs))
   "Loads and initializes a Java VM. The current thread is attached to
 the Java VM and becomes the main thread. Sets the RETURN-ENV argument
