@@ -111,7 +111,7 @@
 
 ;;; Interface Function Tables
 
-(ift:define-table (vm invoke-interface :export t)
+(ift:define-table (vm invocation-interface :export t)
   %reserved
   %reserved
   %reserved
