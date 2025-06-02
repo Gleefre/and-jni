@@ -1,8 +1,9 @@
 (in-package #:and-jni/cffi)
 
-;;;; From jni.h
-;;;; See http://java.sun.com/javase/6/docs/technotes/guides/jni/spec/jniTOC.html
-;;;; Newer version: https://docs.oracle.com/en/java/javase/21/docs/specs/jni/index.html
+;;;; See: https://docs.oracle.com/en/java/javase/24/docs/specs/jni/index.html
+;;;; An older version: http://java.sun.com/javase/6/docs/technotes/guides/jni/spec/jniTOC.html
+
+;;; Foreign Types
 
 ;; Primitive types that match up with Java equivalents.
 (defctype boolean :uint8)
@@ -14,10 +15,9 @@
 (defctype float :float)
 (defctype double :double)
 
-;; Cardinal indices and sizes.
 (defctype size int)
 
-;; Reference types, in C.
+;; Reference types.
 (defctype object :pointer)
 (defctype class object)
 (defctype string object)
@@ -32,6 +32,10 @@
 (defctype float-array array)
 (defctype double-array array)
 (defctype throwable object)
+
+;; jweak type is not explicitely defined in the documentation, but is used in
+;; NewWeakGlobalRef and DeleteWeakGlobalRef native interface functions.
+(defctype weak object)
 
 ;; Field and Method IDs
 (defctype field-id :pointer)
@@ -49,11 +53,8 @@
   (double double)
   (object object))
 
-;; Is not described in documentation, but is used in NewWeakGlobalRef
-;; and DeleteWeakGlobalRef functions.
-(defctype weak object)
+;;; Foreign constants
 
-;;; Some enums
 (defcenum reference-type
   :invalid
   :local
@@ -87,7 +88,7 @@
   :commit
   :abort)
 
-;;; Additional structures
+;;; Foreign structures
 
 (defcstruct native-method
   (name :string)
@@ -111,6 +112,7 @@
 
 ;;; Interface Function Tables
 
+;; See https://docs.oracle.com/en/java/javase/24/docs/specs/jni/invocation.html
 (ift:define-table (vm invocation-interface :export t)
   %reserved
   %reserved
@@ -129,7 +131,7 @@ Waits until the current thread is the only non-daemon user-level Java thread.")
                                          ((:pointer (:struct vm-attach-args)) args (cffi:null-pointer)))
     "Attaches the current thread to a Java VM as a daemon."))
 
-;; See https://docs.oracle.com/javase/6/docs/technotes/guides/jni/spec/functions.html
+;; See https://docs.oracle.com/en/java/javase/24/docs/specs/jni/functions.html
 (ift:define-table (env native-interface :export t)
   %reserved
   %reserved
@@ -147,7 +149,6 @@ Waits until the current thread is the only non-daemon user-level Java thread.")
     "Converts a java.lang.reflect object to a method ID.")
   (from-reflected-field field-id ((object field))
     "Converts a java.lang.reflect.Field to a field ID.")
-  ;; spec doesn't show boolean parameter
   (to-reflected-method object ((class class) (method-id method-id) (boolean is-static))
     "Converts method ID derived from class to a java.lang.reflect object.")
 
@@ -156,7 +157,6 @@ Waits until the current thread is the only non-daemon user-level Java thread.")
   (is-assignable-from boolean ((class class-1) (class class-2))
     "Determines whether an object of class-1 can be safely cast to class-2.")
 
-  ;; spec doesn't show boolean parameter
   (to-reflected-field object ((class class) (field-id field-id) (boolean is-static))
     "Converts a field ID derived from class to a java.lang.reflect.Field object.")
 
@@ -481,7 +481,6 @@ The chars argument is a pointer obtained from string using get-string-chars.")
 Returns NULL if the string cannot be constructed.")
   (get-string-utf-length size ((string string))
     "Returns the length in bytes of the modified UTF-8 representation of a string.")
-  ;; JNI spec says this returns const byte*, but that's inconsistent
   (get-string-utf-chars (:pointer :char) ((string string) ((:return boolean) is-copy))
     "Returns a pointer to a modified UTF-8 string, or NULL if the operation fails.
 Returns a second value which indicates whether a copy is made (boolean*)")
@@ -714,7 +713,7 @@ The argument object can either be a local, global or weak global reference.")
     "Returns the length in bytes of the modified UTF-8 representation of a string."))
 
 ;;; Invocation API functions
-;;; Exported from native library implementing JVM
+;;; Exported from the native library implementing JVM
 
 (defcfun* (get-default-vm-initargs "JNI_GetDefaultJavaVMInitArgs") code
     (((:pointer (:struct vm-initargs)) default-vm-initargs))
