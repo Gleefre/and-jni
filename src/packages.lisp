@@ -24,20 +24,16 @@
   (:import-from #:cffi #:defcenum #:defcfun #:defcstruct #:defctype #:defcunion)
   (:import-from #:and-jni/defcfun* #:defcfun*)
   (:local-nicknames (#:ift #:and-jni/ift))
-  (:export #:boolean #:byte #:char #:short #:int #:long #:float #:double
-           #:size
-           #:object #:class #:string #:array
-           #:object-array #:boolean-array #:byte-array #:char-array #:short-array
+  (:export #:boolean #:byte #:char #:short #:int #:long #:float #:double #:size
+           #:object #:class #:string #:array #:object-array
+           #:boolean-array #:byte-array #:char-array #:short-array
            #:int-array #:long-array #:float-array #:double-array
-           #:throwable #:weak
-           #:value
-           #:field-id #:method-id
+           #:throwable #:weak #:value #:field-id #:method-id
            #:reference-type #:version #:code #:mode
            #:native-method #:vm-option #:vm-initargs #:vm-attach-args
-           #:get-default-vm-initargs #:create-vm #:get-created-vms
+           #:name #:signature #:function-pointer #:data #:group
            #:options #:options-number #:ignore-unrecognized
-           #:name #:signature #:function-pointer
-           #:name #:data))
+           #:get-default-vm-initargs #:create-vm #:get-created-vms))
 
 (defpackage #:and-jni
   (:use #:cl)
