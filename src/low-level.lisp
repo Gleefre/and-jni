@@ -198,7 +198,7 @@ Returns NULL if ref refers to null.")
     "Ensures that at least a given number of local references can be created in the current thread.
 Returns :ok on success, an error code and a pending OutOfMemoryError on failure.")
 
-  (alloc-object object ((class class))
+  (allocate-object object ((class class))
     "Allocates a new Java object without invoking any of the constructors for the object.
 Returns a reference to the object.
 The class must not refer to an array class.")
